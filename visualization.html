@@ -27,11 +27,45 @@
             max-width: 500px;
         }
         .overview-section {
+            position: relative;
             margin-bottom: 30px;
             padding: 20px;
             background: white;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .prediction-source-wrap {
+            position: absolute;
+            top: 18px;
+            right: 20px;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #555;
+        }
+        .prediction-source-wrap label {
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        .prediction-source-wrap select {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: #fff;
+            font-size: 13px;
+            color: #333;
+            max-width: min(220px, 42vw);
+            cursor: pointer;
+        }
+        .prediction-source-wrap select:hover {
+            border-color: #aaa;
+        }
+        .prediction-source-wrap select:focus {
+            outline: none;
+            border-color: #4a5568;
+            box-shadow: 0 0 0 2px rgba(74, 85, 104, 0.2);
         }
         .overview-header {
             display: grid;
@@ -285,6 +319,10 @@
     <div class="tooltip" id="tooltip"></div>
     <div class="container">
         <div class="overview-section">
+            <div class="prediction-source-wrap">
+                <label for="predictionFileSelect">Predictions file</label>
+                <select id="predictionFileSelect" aria-label="Select predictions CSV file"></select>
+            </div>
             <div class="overview-header">
                 <div class="overview-header-table">
                     <table class="breakdown-table" id="breakdownTable"></table>
@@ -308,6 +346,11 @@
     </div>
 
 <script>
+const PREDICTION_FILES = [
+    { path: 'data/predictions.csv', label: 'predictions.csv' },
+    { path: 'data/predictions_2.csv', label: 'predictions_2.csv' },
+];
+
 const CATEGORIES = [
     { key: 'bit_manipulation', label: 'Bit Manipulation', badge: 'badge-bit' },
     { key: 'gravity', label: 'Gravity', badge: 'badge-gravity' },
@@ -345,26 +388,28 @@ function esc(s) {
 const tooltip = document.getElementById('tooltip');
 let allProblems = [];
 let selectedIdx = null;
+let cachedTrainText = null;
+let cachedCategoryById = null;
 
-async function loadData() {
-    const [trainResp, predResp, probResp] = await Promise.all([
+async function loadBaseData() {
+    if (cachedTrainText !== null && cachedCategoryById !== null) return;
+    const [trainResp, probResp] = await Promise.all([
         fetch('data/train.csv'),
-        fetch('data/predictions.csv'),
         fetch('data/problems.jsonl')
     ]);
-    const trainText = await trainResp.text();
-    const predText = await predResp.text();
+    if (!trainResp.ok) throw new Error('Failed to load data/train.csv');
+    if (!probResp.ok) throw new Error('Failed to load data/problems.jsonl');
+    cachedTrainText = await trainResp.text();
     const probText = await probResp.text();
-
-    // Parse categories from problems.jsonl
-    const categoryById = {};
+    cachedCategoryById = {};
     for (const line of probText.trim().split('\n')) {
         if (!line) continue;
         const rec = JSON.parse(line);
-        categoryById[rec.id] = rec.category;
+        cachedCategoryById[rec.id] = rec.category;
     }
+}
 
-    // Parse predictions
+function parsePredictionsCsv(predText) {
     const predictions = {};
     const predLines = predText.trim().split('\n');
     for (let i = 1; i < predLines.length; i++) {
@@ -374,8 +419,10 @@ async function loadData() {
         const prediction = predLines[i].substring(firstComma + 1).replace(/^"|"$/g, '');
         predictions[id] = prediction;
     }
+    return predictions;
+}
 
-    // Parse train CSV (handle quoted fields with commas/newlines)
+function buildProblemsFromTrain(trainText, categoryById, predictions) {
     const problems = [];
     let inQuote = false;
     let field = '';
@@ -417,7 +464,6 @@ async function loadData() {
             }
         }
     }
-    // Handle last line
     if (field || fields.length > 0) {
         fields.push(field);
         if (lineNum > 0 && fields.length >= 3) {
@@ -430,6 +476,44 @@ async function loadData() {
     }
 
     return problems;
+}
+
+async function loadData(predictionPath) {
+    await loadBaseData();
+    const predResp = await fetch(predictionPath);
+    if (!predResp.ok) throw new Error('Failed to load ' + predictionPath);
+    const predText = await predResp.text();
+    const predictions = parsePredictionsCsv(predText);
+    return buildProblemsFromTrain(cachedTrainText, cachedCategoryById, predictions);
+}
+
+function setupPredictionFileSelect() {
+    const select = document.getElementById('predictionFileSelect');
+    PREDICTION_FILES.forEach((f) => {
+        const opt = document.createElement('option');
+        opt.value = f.path;
+        opt.textContent = f.label;
+        select.appendChild(opt);
+    });
+    select.addEventListener('change', () => refreshVisualization());
+}
+
+async function refreshVisualization() {
+    const select = document.getElementById('predictionFileSelect');
+    const path = select.value;
+    clearSelection();
+    document.getElementById('stats').textContent = 'Loading...';
+    document.getElementById('breakdownTable').innerHTML = '';
+    document.getElementById('datasetGroups').innerHTML = '<div style="color: #888; font-size: 14px;">Loading...</div>';
+    try {
+        allProblems = await loadData(path);
+        buildGrid();
+    } catch (err) {
+        console.error(err);
+        document.getElementById('stats').textContent = 'Error loading data';
+        document.getElementById('datasetGroups').innerHTML =
+            '<div style="color: #c0392b; font-size: 14px;">Could not load predictions. Serve this page over HTTP (e.g. a local server) and check the file path.</div>';
+    }
 }
 
 function buildGrid() {
@@ -631,10 +715,8 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Init
-loadData().then(problems => {
-    allProblems = problems;
-    buildGrid();
-});
+setupPredictionFileSelect();
+refreshVisualization();
 </script>
 </body>
 </html>
