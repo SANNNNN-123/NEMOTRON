@@ -234,6 +234,26 @@ const CATEGORIES = [
     { key: 'equation_symbolic', label: 'Equation (Symbolic)', badge: 'badge-equation-symbolic' },
 ];
 
+// Official Kaggle metric verify logic
+function verify(storedAnswer, predicted) {
+    const s = storedAnswer.trim();
+    const p = predicted.trim();
+    // Binary strings: exact match
+    if (/^[01]+$/.test(s)) {
+        return p.toLowerCase() === s.toLowerCase();
+    }
+    // Numeric: 1% relative tolerance
+    const sNum = parseFloat(s);
+    const pNum = parseFloat(p);
+    if (!isNaN(sNum) && !isNaN(pNum) && String(sNum) === s.replace(/^0+(?=\d)/, '')) {
+        const diff = Math.abs(sNum - pNum);
+        const maxAbs = Math.max(Math.abs(sNum), Math.abs(pNum));
+        return diff <= Math.max(1e-2 * maxAbs, 1e-5);
+    }
+    // Fallback: case-insensitive string match
+    return p.toLowerCase() === s.toLowerCase();
+}
+
 function esc(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -303,7 +323,7 @@ async function loadData() {
                     const [id, prompt, answer] = fields;
                     const category = categoryById[id] || 'unknown';
                     const prediction = predictions[id] || null;
-                    const isCorrect = prediction !== null && prediction.trim() === answer.trim();
+                    const isCorrect = prediction !== null && verify(answer, prediction);
                     problems.push({ id, prompt, answer, category, prediction, isCorrect });
                 }
                 fields = [];
@@ -320,7 +340,7 @@ async function loadData() {
             const [id, prompt, answer] = fields;
             const category = categoryById[id] || 'unknown';
             const prediction = predictions[id] || null;
-            const isCorrect = prediction !== null && prediction.trim() === answer.trim();
+            const isCorrect = prediction !== null && verify(answer, prediction);
             problems.push({ id, prompt, answer, category, prediction, isCorrect });
         }
     }
