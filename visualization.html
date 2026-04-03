@@ -388,11 +388,26 @@ function esc(s) {
 const tooltip = document.getElementById('tooltip');
 let allProblems = [];
 let selectedIdx = null;
+/** @type {boolean} */
+let dataSourceManifest = false;
+/** @type {Array<{id:string,category:string,answer:string}>|null} */
+let cachedManifestRows = null;
 let cachedTrainText = null;
 let cachedCategoryById = null;
+/** @type {Map<string,string>|null} */
+let promptById = null;
+let promptsLoadPromise = null;
 
 async function loadBaseData() {
-    if (cachedTrainText !== null && cachedCategoryById !== null) return;
+    if (cachedManifestRows !== null || (cachedTrainText !== null && cachedCategoryById !== null)) return;
+    const manifestResp = await fetch('data/viz_manifest.json');
+    if (manifestResp.ok) {
+        const data = await manifestResp.json();
+        cachedManifestRows = data.rows;
+        dataSourceManifest = true;
+        return;
+    }
+    dataSourceManifest = false;
     const [trainResp, probResp] = await Promise.all([
         fetch('data/train.csv'),
         fetch('data/problems.jsonl')
@@ -409,26 +424,11 @@ async function loadBaseData() {
     }
 }
 
-function parsePredictionsCsv(predText) {
-    const predictions = {};
-    const predLines = predText.trim().split('\n');
-    for (let i = 1; i < predLines.length; i++) {
-        const firstComma = predLines[i].indexOf(',');
-        if (firstComma === -1) continue;
-        const id = predLines[i].substring(0, firstComma);
-        const prediction = predLines[i].substring(firstComma + 1).replace(/^"|"$/g, '');
-        predictions[id] = prediction;
-    }
-    return predictions;
-}
-
-function buildProblemsFromTrain(trainText, categoryById, predictions) {
-    const problems = [];
+function forEachTrainRow(trainText, onRow) {
     let inQuote = false;
     let field = '';
     let fields = [];
     let lineNum = 0;
-
     for (let i = 0; i < trainText.length; i++) {
         const ch = trainText[i];
         if (inQuote) {
@@ -452,10 +452,7 @@ function buildProblemsFromTrain(trainText, categoryById, predictions) {
                 field = '';
                 if (lineNum > 0 && fields.length >= 3) {
                     const [id, prompt, answer] = fields;
-                    const category = categoryById[id] || 'unknown';
-                    const prediction = predictions[id] || null;
-                    const isCorrect = prediction !== null && verify(answer, prediction);
-                    problems.push({ id, prompt, answer, category, prediction, isCorrect });
+                    onRow(id, prompt, answer);
                 }
                 fields = [];
                 lineNum++;
@@ -468,13 +465,77 @@ function buildProblemsFromTrain(trainText, categoryById, predictions) {
         fields.push(field);
         if (lineNum > 0 && fields.length >= 3) {
             const [id, prompt, answer] = fields;
-            const category = categoryById[id] || 'unknown';
-            const prediction = predictions[id] || null;
-            const isCorrect = prediction !== null && verify(answer, prediction);
-            problems.push({ id, prompt, answer, category, prediction, isCorrect });
+            onRow(id, prompt, answer);
         }
     }
+}
 
+function parseTrainPromptsOnly(trainText) {
+    const map = new Map();
+    forEachTrainRow(trainText, (id, prompt) => map.set(id, prompt));
+    return map;
+}
+
+async function ensurePromptsLoaded() {
+    if (!dataSourceManifest) return;
+    if (promptById !== null) return;
+    if (promptsLoadPromise) {
+        await promptsLoadPromise;
+        return;
+    }
+    promptsLoadPromise = (async () => {
+        const r = await fetch('data/train.csv');
+        if (!r.ok) throw new Error('Failed to load data/train.csv for prompts');
+        const text = await r.text();
+        promptById = parseTrainPromptsOnly(text);
+    })();
+    try {
+        await promptsLoadPromise;
+    } catch (e) {
+        promptsLoadPromise = null;
+        throw e;
+    }
+}
+
+function parsePredictionsCsv(predText) {
+    const predictions = {};
+    const predLines = predText.trim().split('\n');
+    for (let i = 1; i < predLines.length; i++) {
+        const firstComma = predLines[i].indexOf(',');
+        if (firstComma === -1) continue;
+        const id = predLines[i].substring(0, firstComma);
+        const prediction = predLines[i].substring(firstComma + 1).replace(/^"|"$/g, '');
+        predictions[id] = prediction;
+    }
+    return predictions;
+}
+
+function buildProblemsFromManifest(manifestRows, predictions) {
+    const problems = [];
+    for (const row of manifestRows) {
+        const id = row.id;
+        const prediction = predictions[id] || null;
+        const isCorrect = prediction !== null && verify(row.answer, prediction);
+        problems.push({
+            id,
+            prompt: '',
+            answer: row.answer,
+            category: row.category,
+            prediction,
+            isCorrect
+        });
+    }
+    return problems;
+}
+
+function buildProblemsFromTrain(trainText, categoryById, predictions) {
+    const problems = [];
+    forEachTrainRow(trainText, (id, prompt, answer) => {
+        const category = categoryById[id] || 'unknown';
+        const prediction = predictions[id] || null;
+        const isCorrect = prediction !== null && verify(answer, prediction);
+        problems.push({ id, prompt, answer, category, prediction, isCorrect });
+    });
     return problems;
 }
 
@@ -484,6 +545,9 @@ async function loadData(predictionPath) {
     if (!predResp.ok) throw new Error('Failed to load ' + predictionPath);
     const predText = await predResp.text();
     const predictions = parsePredictionsCsv(predText);
+    if (dataSourceManifest) {
+        return buildProblemsFromManifest(cachedManifestRows, predictions);
+    }
     return buildProblemsFromTrain(cachedTrainText, cachedCategoryById, predictions);
 }
 
@@ -629,7 +693,7 @@ function buildGrid() {
 function selectProblem(idx) {
     selectedIdx = idx;
     document.querySelectorAll('.problem-box.selected').forEach(b => b.classList.remove('selected'));
-    renderDetail();
+    void renderDetail();
 }
 
 function clearSelection() {
@@ -640,11 +704,25 @@ function clearSelection() {
     detailEl.innerHTML = '';
 }
 
-function renderDetail() {
+async function renderDetail() {
     const detailEl = document.getElementById('detailOverlay');
     if (selectedIdx === null) { detailEl.classList.remove('visible'); return; }
 
     const p = allProblems[selectedIdx];
+    let promptText = p.prompt;
+    if (dataSourceManifest && promptById === null) {
+        detailEl.classList.add('visible');
+        detailEl.innerHTML = '<div class="prompt-section" style="color:#666">Loading prompts from train.csv (once per visit)…</div>';
+    }
+    if (dataSourceManifest) {
+        try {
+            await ensurePromptsLoaded();
+            promptText = promptById.get(p.id) || '';
+        } catch (err) {
+            console.error(err);
+            promptText = '(Could not load prompt — train.csv missing or invalid.)';
+        }
+    }
     const cat = CATEGORIES.find(c => c.key === p.category) || { label: 'Unknown', badge: '' };
 
     let statusHtml, statusColor;
@@ -676,7 +754,7 @@ function renderDetail() {
     `;
 
     // Prompt
-    html += `<div class="prompt-section"><div class="prompt-full">${esc(p.prompt)}</div></div>`;
+    html += `<div class="prompt-section"><div class="prompt-full">${esc(promptText)}</div></div>`;
 
     // Ground truth answer
     html += `<div class="answer-row">
@@ -699,8 +777,8 @@ function renderDetail() {
     detailEl.innerHTML = html;
 
     // Bind navigation
-    document.getElementById('detailPrev').addEventListener('click', () => selectProblem(selectedIdx - 1));
-    document.getElementById('detailNext').addEventListener('click', () => selectProblem(selectedIdx + 1));
+    document.getElementById('detailPrev').addEventListener('click', () => { selectProblem(selectedIdx - 1); });
+    document.getElementById('detailNext').addEventListener('click', () => { selectProblem(selectedIdx + 1); });
     document.getElementById('detailClose').addEventListener('click', clearSelection);
 
     detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });

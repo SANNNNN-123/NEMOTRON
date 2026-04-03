@@ -25,6 +25,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Build viz manifest (fast visualization first load)
+        run: python3 scripts/build_viz_manifest.py
+
       - name: Assemble site (HTML + data only)
         run: |
           mkdir -p site
