@@ -4,12 +4,12 @@ Generate CoT traces for English substitution cipher rows in train.csv.
 Output: data/train_cipher_cot.csv with columns (same as train_binary_cot.csv):
     id, prompt, answer, type, generated_cot
 
-Default: first 364 cipher rows (see CIPHER_LIMIT).
+Default: all cipher rows in train.csv (same count as cipher problems, currently 1576).
 
 Run from repo root:
-  python scripts/CIPHER/gen_cipher_cot.py
-  python scripts/CIPHER/gen_cipher_cot.py full    # all cipher rows
-  python scripts/CIPHER/gen_cipher_cot.py 500       # first N cipher rows
+  python scripts/CIPHER/gen_cipher_cot.py           # full cipher set
+  python scripts/CIPHER/gen_cipher_cot.py full      # same (explicit)
+  python scripts/CIPHER/gen_cipher_cot.py 364       # first N rows only
 """
 
 from __future__ import annotations
@@ -30,7 +30,6 @@ from solve_cipher import (  # noqa: E402
 )
 from vocab import CIPHER_VOCAB  # noqa: E402
 
-CIPHER_LIMIT = 364
 OUTPUT_PATH = "data/train_cipher_cot.csv"
 ROW_TYPE = "Text Encryption"
 
@@ -171,7 +170,7 @@ def process_prompt(prompt: str, gold: str) -> Optional[str]:
 
 
 def main() -> None:
-    mode = sys.argv[1] if len(sys.argv) > 1 else str(CIPHER_LIMIT)
+    mode = sys.argv[1] if len(sys.argv) > 1 else "full"
 
     df = pd.read_csv("data/train.csv", dtype={"answer": str, "id": str})
     cdf = df[df["prompt"].apply(is_cipher_prompt)].reset_index(drop=True)
