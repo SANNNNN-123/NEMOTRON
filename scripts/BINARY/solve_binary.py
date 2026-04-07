@@ -35,62 +35,28 @@ def _build_library():
     lib.append(("ID",  1, lambda b: b[0], 1))
     lib.append(("NOT", 1, lambda b: 1 - b[0], 1))
 
-    # 2-input (a, b). We enumerate all 10 non-trivial 2-input funcs
+    # 2-input: only the 6 symmetric gates used by the dataset generator
     two_in = {
-        "AND":     lambda a, b: a & b,
-        "OR":      lambda a, b: a | b,
-        "XOR":     lambda a, b: a ^ b,
-        "NAND":    lambda a, b: 1 - (a & b),
-        "NOR":     lambda a, b: 1 - (a | b),
-        "XNOR":    lambda a, b: 1 - (a ^ b),
-        "ANDNOTB": lambda a, b: a & (1 - b),
-        "ANDNOTA": lambda a, b: (1 - a) & b,
-        "ORNOTB":  lambda a, b: a | (1 - b),
-        "ORNOTA":  lambda a, b: (1 - a) | b,
+        "AND":  lambda a, b: a & b,
+        "OR":   lambda a, b: a | b,
+        "XOR":  lambda a, b: a ^ b,
+        "XNOR": lambda a, b: 1 - (a ^ b),
+        "NAND": lambda a, b: 1 - (a & b),
+        "NOR":  lambda a, b: 1 - (a | b),
     }
     for name, fn in two_in.items():
         lib.append((name, 2, (lambda fn: lambda b: fn(b[0], b[1]))(fn), 2))
 
-    # 3-input
+    # 3-input: only CHOICE, MAJ3, PAR3 as reported in the distribution
     three_in = {
-        "MAJ3":    lambda a, b, c: 1 if (a + b + c) >= 2 else 0,
-        "CHOICE":  lambda a, b, c: b if a else c,          # (a?b:c)
-        "NCHOICE": lambda a, b, c: c if a else b,
-        "PAR3":    lambda a, b, c: a ^ b ^ c,
-        "NPAR3":   lambda a, b, c: 1 - (a ^ b ^ c),
-        "AND3":    lambda a, b, c: a & b & c,
-        "OR3":     lambda a, b, c: a | b | c,
-        "AND_OR":  lambda a, b, c: (a & b) | c,
-        "OR_AND":  lambda a, b, c: (a | b) & c,
-        "AND_XOR": lambda a, b, c: (a & b) ^ c,
-        "XOR_AND": lambda a, b, c: (a ^ b) & c,
-        "OR_XOR":  lambda a, b, c: (a | b) ^ c,
-        "XOR_OR":  lambda a, b, c: (a ^ b) | c,
-        "NAND_OR": lambda a, b, c: (1 - (a & b)) | c,
-        "NOR_AND": lambda a, b, c: (1 - (a | b)) & c,
-        "NMAJ3":   lambda a, b, c: 0 if (a + b + c) >= 2 else 1,
-        "NAND_XOR":lambda a, b, c: (1 - (a & b)) ^ c,
-        "NOR_XOR": lambda a, b, c: (1 - (a | b)) ^ c,
+        "CHOICE": lambda a, b, c: b if a else c,
+        "MAJ3":   lambda a, b, c: 1 if (a + b + c) >= 2 else 0,
+        "PAR3":   lambda a, b, c: a ^ b ^ c,
     }
     for name, fn in three_in.items():
         lib.append((name, 3, (lambda fn: lambda b: fn(b[0], b[1], b[2]))(fn), 3))
 
-    # 4-input (a small but useful set)
-    four_in = {
-        "AOA":   lambda a, b, c, d: (a & b) | (c & d),
-        "OAO":   lambda a, b, c, d: (a | b) & (c | d),
-        "PAR4":  lambda a, b, c, d: a ^ b ^ c ^ d,
-        "NPAR4": lambda a, b, c, d: 1 - (a ^ b ^ c ^ d),
-        "AXA":   lambda a, b, c, d: (a & b) ^ (c & d),
-        "OXO":   lambda a, b, c, d: (a | b) ^ (c | d),
-        "XAX":   lambda a, b, c, d: (a ^ b) & (c ^ d),
-        "XOX":   lambda a, b, c, d: (a ^ b) | (c ^ d),
-        "AND4":  lambda a, b, c, d: a & b & c & d,
-        "OR4":   lambda a, b, c, d: a | b | c | d,
-        "MAJ4":  lambda a, b, c, d: 1 if (a + b + c + d) >= 3 else 0,
-    }
-    for name, fn in four_in.items():
-        lib.append((name, 4, (lambda fn: lambda b: fn(b[0], b[1], b[2], b[3]))(fn), 4))
+    # 4-input: not used by the generator
 
     return lib
 
@@ -114,7 +80,6 @@ def solve_bit(bit_idx: int, examples, target):
     wanted = [out[bit_idx] for _, out in examples]
     inps = [inp for inp, _ in examples]
 
-    # 1) Library first-match (level 0 -> 4, in declared order)
     for name, arity, fn, level in LIBRARY:
         if arity == 0:
             if all(fn(()) == w for w in wanted):
@@ -129,7 +94,6 @@ def solve_bit(bit_idx: int, examples, target):
             if ok:
                 return str(fn(tuple(target[i] for i in perm)))
 
-    # 2) Fallback: truth-table subset (k=1..5), smallest k with target row seen
     for k in range(1, 6):
         for subset in itertools.combinations(range(8), k):
             table = {}
