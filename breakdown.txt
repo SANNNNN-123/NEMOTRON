@@ -118,4 +118,5 @@ notebook: training-with-unsloth-to-achieve-0-81-lb.ipynb
 ├─────────────────────────┼───────┼──────────────┤
 │ Total                   │ 9,500 │ 9,500        │
 └─────────────────────────┴───────┴──────────────┘
-Expected: ~0.81 (identical to ORI notebook), ~149 steps, ~8hr
+Loss: 34.3 → 3.24 (149 steps, ~8hr)
+Score: 0.80-0.81 ✓ (identical to ORI notebook)
