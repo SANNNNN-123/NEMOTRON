@@ -64,7 +64,7 @@ from rule_found ONLY + hypothesis_formed =score 0.35
 └─────────────────────────┴────────────┴───────────────────┴──────────────┴───────┘ 
 
 data/formatted_train_dataset_master1.csv
-clean the CoT
+clean the CoT = score 0.39
 ┌─────────────────────────┬────────┬────────────┬────────────┬──────────────┐                                                                                                                    
 │        Category         │ Target │ rule_found │ hyp_formed │ rule_unknown │
 ├─────────────────────────┼────────┼────────────┼────────────┼──────────────┤                                                                                                                    
@@ -79,4 +79,43 @@ clean the CoT
 │ Numeral Conversion      │    200 │        200 │          0 │            0 │                                                                                                                  
 ├─────────────────────────┼────────┼────────────┼────────────┼──────────────┤                                                                                                                    
 │ Gravitational Constant  │    200 │        200 │          0 │            0 │
-└─────────────────────────┴────────┴────────────┴────────────┴──────────────┘ 
+└─────────────────────────┴────────┴────────────┴────────────┴──────────────┘
+
+data/train_split_with_cot_0.81.csv — TYPE_SAMPLES half dataset 4750= score 0.66
+notebook: training-with-unsloth-to-achieve-0-81-lb.ipynb
+┌─────────────────────────┬───────┬──────────────┐
+│        Category         │ Total │   Sampled    │
+├─────────────────────────┼───────┼──────────────┤
+│ bit_manipulation        │ 1,602 │ 1,400        │
+│ cipher                  │ 1,576 │ 1,300        │
+│ cryptarithm_deduce      │   659 │   500        │
+│ cryptarithm_guess       │   164 │   164 (all)  │
+│ equation_numeric_deduce │   596 │   350        │
+│ equation_numeric_guess  │   136 │   136 (all)  │
+│ unit_conversion         │ 1,594 │   300        │
+│ numeral                 │ 1,576 │   300        │
+│ gravity                 │ 1,597 │   300        │
+├─────────────────────────┼───────┼──────────────┤
+│ Total sampled           │ 9,500 │ 4,750        │
+└─────────────────────────┴───────┴──────────────┘
+Loss: 38.1 → 4.84 (75 steps, ~4hr)
+Root cause: too few gradient steps — linear LR decayed before convergence
+
+data/train_split_with_cot_0.81.csv — TYPE_SAMPLES all None (full 9500) = score TBD
+notebook: training-with-unsloth-to-achieve-0-81-lb.ipynb
+┌─────────────────────────┬───────┬──────────────┐
+│        Category         │ Total │   Sampled    │
+├─────────────────────────┼───────┼──────────────┤
+│ bit_manipulation        │ 1,602 │ 1,602 (all)  │
+│ cipher                  │ 1,576 │ 1,576 (all)  │
+│ cryptarithm_deduce      │   659 │   659 (all)  │
+│ cryptarithm_guess       │   164 │   164 (all)  │
+│ equation_numeric_deduce │   596 │   596 (all)  │
+│ equation_numeric_guess  │   136 │   136 (all)  │
+│ unit_conversion         │ 1,594 │ 1,594 (all)  │
+│ numeral                 │ 1,576 │ 1,576 (all)  │
+│ gravity                 │ 1,597 │ 1,597 (all)  │
+├─────────────────────────┼───────┼──────────────┤
+│ Total                   │ 9,500 │ 9,500        │
+└─────────────────────────┴───────┴──────────────┘
+Expected: ~0.81 (identical to ORI notebook), ~149 steps, ~8hr
