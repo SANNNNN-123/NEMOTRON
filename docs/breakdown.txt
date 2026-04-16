@@ -120,3 +120,38 @@ notebook: training-with-unsloth-to-achieve-0-81-lb.ipynb
 └─────────────────────────┴───────┴──────────────┘
 Loss: 34.3 → 3.24 (149 steps, ~8hr)
 Score: 0.80-0.81 ✓ (identical to ORI notebook)
+
+data/train_split_with_cot_0.81.csv — BATCH_SIZE=2, GRAD_ACCUM=32 (full 9500) = score 0.81-0.82
+notebook: training-with-unsloth-to-achieve-0-81-lb.ipynb
+┌─────────────────────────┬───────┬──────────────┐
+│        Category         │ Total │   Sampled    │
+├─────────────────────────┼───────┼──────────────┤
+│ bit_manipulation        │ 1,602 │ 1,602 (all)  │
+│ cipher                  │ 1,576 │ 1,576 (all)  │
+│ cryptarithm_deduce      │   659 │   659 (all)  │
+│ cryptarithm_guess       │   164 │   164 (all)  │
+│ equation_numeric_deduce │   596 │   596 (all)  │
+│ equation_numeric_guess  │   136 │   136 (all)  │
+│ unit_conversion         │ 1,594 │ 1,594 (all)  │
+│ numeral                 │ 1,576 │ 1,576 (all)  │
+│ gravity                 │ 1,597 │ 1,597 (all)  │
+├─────────────────────────┼───────┼──────────────┤
+│ Total                   │ 9,500 │ 9,500        │
+└─────────────────────────┴───────┴──────────────┘
+┌──────┬───────────┬──────────────┐                                                                                                                                          
+│ Step │ μ=1 (8hr) │ μ=2 (4.65hr) │
+├──────┼───────────┼──────────────┤                                                                                                                                          
+│ 10   │      34.3 │         13.1 │
+├──────┼───────────┼──────────────┤
+│ 40   │       5.0 │          2.4 │
+├──────┼───────────┼──────────────┤                                                                                                                                          
+│ 70   │      3.63 │         1.65 │
+├──────┼───────────┼──────────────┤                                                                                                                                          
+│ 100  │      3.36 │         1.56 │
+├──────┼───────────┼──────────────┤
+│ 140  │      3.24 │         1.49 │
+└──────┴───────────┴──────────────┘  
+Loss       : 13.1 → 1.49 (149 steps, ~4.65hr)
+Peak VRAM  : 90.43 GB / 96 GB (94.2%)
+Speedup    : 1.75x faster than μ=1 (279 min vs 489 min)
+Score      : 0.81 ✓ (same score, half the time)
