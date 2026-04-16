@@ -101,7 +101,7 @@ notebook: training-with-unsloth-to-achieve-0-81-lb.ipynb
 Loss: 38.1 → 4.84 (75 steps, ~4hr)
 Root cause: too few gradient steps — linear LR decayed before convergence
 
-data/train_split_with_cot_0.81.csv — TYPE_SAMPLES all None (full 9500) = score TBD
+data/train_split_with_cot_0.81.csv — TYPE_SAMPLES all None (full 9500) = score 0.80-0.81
 notebook: training-with-unsloth-to-achieve-0-81-lb.ipynb
 ┌─────────────────────────┬───────┬──────────────┐
 │        Category         │ Total │   Sampled    │
