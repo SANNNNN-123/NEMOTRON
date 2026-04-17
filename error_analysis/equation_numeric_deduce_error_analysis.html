@@ -1,0 +1,382 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<title>equation_numeric_deduce — Error Analysis</title>
+
+<style>
+  :root { --bg:#0f1117; --surface:#1a1d2e; --surface2:#242740;
+          --border:#2e3250; --text:#e8eaf0; --muted:#8b8fa8; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text);
+         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+         padding: 24px 40px 60px; line-height: 1.5; }
+  header { padding-bottom: 20px; border-bottom: 1px solid var(--border);
+           margin-bottom: 24px; }
+  h1 { font-size: 1.4rem; letter-spacing: -0.01em; }
+  .subtitle { color: var(--muted); margin-top: 6px; font-size: .92rem; }
+  .stats { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; font-size: .82rem; }
+  .chip { background: var(--surface2); border: 1px solid var(--border);
+          border-radius: 20px; padding: 5px 14px; }
+
+  .summary { background: var(--surface); border-radius: 8px;
+             border: 1px solid var(--border); padding: 16px 20px; margin-bottom: 24px; }
+  .summary h2 { font-size: 1rem; margin-bottom: 10px; letter-spacing: .02em; }
+  .summary table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  .summary th { text-align: left; color: var(--muted); font-weight: 600;
+                border-bottom: 1px solid var(--border); padding: 8px 4px; font-size: .8rem; }
+  .summary td { padding: 7px 4px; border-bottom: 1px solid rgba(46,50,80,.5); }
+  .summary tr:last-child td { border-bottom: none; }
+
+  .card { background: var(--surface); border-left: 4px solid;
+          border-radius: 10px; padding: 16px 20px; margin: 20px 0; }
+  .card-head { display: flex; justify-content: space-between; align-items: flex-start;
+               gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .idx { color: var(--muted); font-size: .8rem; margin-right: 8px; }
+  .pid { font-family: 'JetBrains Mono', monospace; color: #7986cb; font-size: .9rem; }
+  .class-badge { font-size: .7rem; font-weight: 700; letter-spacing: .05em;
+                 text-transform: uppercase; padding: 4px 10px; border-radius: 4px;
+                 border: 1px solid; }
+
+  .meta { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 14px;
+          font-size: .85rem; }
+  .pill { background: var(--surface2); border: 1px solid var(--border);
+          border-radius: 6px; padding: 4px 10px; }
+  .pill.gt   { color: #a5d6a7; border-color: rgba(76,175,130,.4); }
+  .pill.pred { color: #ff9a9a; border-color: rgba(224,82,82,.4); }
+  .pill.ok   { color: #a5d6a7; border-color: rgba(76,175,130,.4); }
+  .pill.warn { color: #ffd089; border-color: rgba(224,148,58,.4); }
+  .pill.bad  { color: #ff9a9a; border-color: rgba(224,82,82,.4); }
+
+  .section-label { font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+                   text-transform: uppercase; color: var(--muted);
+                   margin: 14px 0 6px; }
+  .diagnosis { background: var(--surface2); border: 1px solid var(--border);
+               border-radius: 6px; padding: 10px 14px; font-size: .88rem; }
+  pre { background: #0a0c14; border: 1px solid var(--border); border-radius: 6px;
+        padding: 12px; color: #c8cbe0; font-size: .78rem; line-height: 1.55;
+        white-space: pre-wrap; word-break: break-word;
+        max-height: 400px; overflow-y: auto;
+        font-family: 'JetBrains Mono', monospace; }
+  pre.prompt { color: #b8c0ff; }
+
+  .takeaway { background: rgba(224,148,58,.08); border: 1px solid rgba(224,148,58,.35);
+              border-radius: 8px; padding: 16px 20px; margin: 24px 0; }
+  .takeaway h2 { color: #e0943a; font-size: 1.02rem; margin-bottom: 10px; }
+  .takeaway ul { margin-left: 20px; }
+  .takeaway li { margin-bottom: 6px; font-size: .9rem; }
+  .takeaway code { background: #0a0c14; padding: 1px 6px; border-radius: 4px;
+                   font-family: 'JetBrains Mono', monospace; color: #ffd089; font-size: .85rem; }
+</style>
+
+</head><body>
+
+<header>
+  <h1>equation_numeric_deduce — Error Analysis (7 wrong / 48 total)</h1>
+  <div class="subtitle">
+    Drilling into the category that was flagged in <code>analysis.txt</code> as an
+    "answer format mismatch" (17/ vs 17). The actual picture is more nuanced — only
+    one case fits the pure-format pattern. This report classifies each error, shows
+    the prompt and the model's tail reasoning, and calls out which ones are
+    recoverable by a scorer change vs. which need training fixes.
+  </div>
+  <div class="stats">
+    <div class="chip">7 errors</div>
+    <div class="chip">1 recoverable by scorer fix</div>
+    <div class="chip">1 recoverable only if GT is corrected</div>
+    <div class="chip">5 genuine model failures</div>
+  </div>
+</header>
+
+<div class="summary">
+  <h2>Error classification</h2>
+  <table>
+    <thead><tr><th style="width:60px;">Count</th><th>Root cause</th><th>Class tag</th></tr></thead>
+    <tbody>
+      <tr><td><b>3</b></td><td>Model applied the wrong transformation</td><td><code>wrong-rule</code></td></tr><tr><td><b>1</b></td><td>Ground-truth has stray character</td><td><code>gt-bug</code></td></tr><tr><td><b>1</b></td><td>Both: GT is malformed AND model picked wrong rule</td><td><code>gt-bug+wrong-rule</code></td></tr><tr><td><b>1</b></td><td>Signed vs. absolute difference (sign carries meaning)</td><td><code>sign-error</code></td></tr><tr><td><b>1</b></td><td>Prefix carries meaning; GT/rule inconsistent with prompt</td><td><code>semantic-prefix</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="summary" style="padding:12px 16px;"><h2 style="font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);">Jump to problem</h2><a href="#card-0" style="color:#7986cb;text-decoration:none;font-family:monospace;font-size:.85rem;margin-right:14px;">#1 00d8b3db</a><a href="#card-1" style="color:#7986cb;text-decoration:none;font-family:monospace;font-size:.85rem;margin-right:14px;">#2 0bcffccd</a><a href="#card-2" style="color:#7986cb;text-decoration:none;font-family:monospace;font-size:.85rem;margin-right:14px;">#3 0c8a8a16</a><a href="#card-3" style="color:#7986cb;text-decoration:none;font-family:monospace;font-size:.85rem;margin-right:14px;">#4 1019ee55</a><a href="#card-4" style="color:#7986cb;text-decoration:none;font-family:monospace;font-size:.85rem;margin-right:14px;">#5 10fdae00</a><a href="#card-5" style="color:#7986cb;text-decoration:none;font-family:monospace;font-size:.85rem;margin-right:14px;">#6 157228d7</a><a href="#card-6" style="color:#7986cb;text-decoration:none;font-family:monospace;font-size:.85rem;margin-right:14px;">#7 16699d43</a></div>
+
+<div class="takeaway">
+  <h2>Verdict for analysis.txt line 27–33</h2>
+  <ul>
+    <li>The claim that the 7 errors are an "answer format mismatch" (<code>17/</code> vs <code>17</code>) describes only <b>1 of 7</b> cases (<code>00d8b3db</code>).</li>
+    <li>A more tolerant <code>verify()</code> (e.g. strip a single trailing non-digit) would recover <b>1 row</b>, not 7.</li>
+    <li><b>4 of 7</b> are genuine rule-selection errors where the model picked the wrong transformation from the candidate list — same root cause as <code>bit_manipulation</code>, not a format issue.</li>
+    <li><b>2 of 7</b> (<code>10fdae00</code> sign, <code>157228d7</code> <code>*</code> prefix) have semantic prefixes/signs that carry meaning and cannot be stripped safely.</li>
+    <li><b>Actionable fix</b>: update <code>verify()</code> to retry with trailing-operator stripping only as a best-effort fallback when the float parse fails — cheap insurance worth ~1 row. The rest needs better training data, not a scorer tweak.</li>
+  </ul>
+</div>
+
+
+    <div class="card" style="border-left-color:#4caf82;" id="card-0">
+      <div class="card-head">
+        <div>
+          <span class="idx">#1</span>
+          <span class="pid">00d8b3db</span>
+        </div>
+        <span class="class-badge" style="background:#4caf8222;color:#4caf82;border-color:#4caf82;">Ground-truth data bug</span>
+      </div>
+      <div class="meta">
+        <span class="pill gt">Ground truth: <b>17/</b></span>
+        <span class="pill pred">Predicted: <b>17</b></span>
+        <span class="pill ok">Recoverable by scorer fix</span>
+      </div>
+
+      <div class="section-label">Prompt</div>
+      <pre class="prompt">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+34/44 = 1
+41/32 = 9
+34|25 = 69
+87\64 = 8853
+Now, determine the result for: 69/52</pre>
+
+      <div class="section-label">Diagnosis</div>
+      <div class="diagnosis">GT = `17/` has a trailing `/` that doesn&#x27;t appear in any prompt example (34/44=1, 41/32=9, 34|25=69, 87\64=8853). Model&#x27;s computed number 17 is correct — this looks like a GT label that slipped through with the operator glued on. A lenient scorer that strips a single trailing operator character would recover this one.</div>
+
+      <div class="section-label">Model reasoning tail</div>
+      <pre>Applying to 69/52:
+  reversed operands [69-&gt;96, 52-&gt;25] and reversed result
+  absolute difference f(96, 25) = |96 - 25| = 71 -rev-&gt; 17
+  Result: 【17】
+
+I will now return the answer in 
+The answer in  is 
+&lt;/think&gt;
+&lt;/think&gt;
+\boxed{17}</pre>
+    </div>
+    
+
+    <div class="card" style="border-left-color:#e05252;" id="card-1">
+      <div class="card-head">
+        <div>
+          <span class="idx">#2</span>
+          <span class="pid">0bcffccd</span>
+        </div>
+        <span class="class-badge" style="background:#e0525222;color:#e05252;border-color:#e05252;">Wrong transformation function</span>
+      </div>
+      <div class="meta">
+        <span class="pill gt">Ground truth: <b>10</b></span>
+        <span class="pill pred">Predicted: <b>1</b></span>
+        <span class="pill bad">NOT a scorer issue</span>
+      </div>
+
+      <div class="section-label">Prompt</div>
+      <pre class="prompt">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+61@52 = 3172
+87`56 = 31
+68@72 = 4896
+54]53 = 108
+Now, determine the result for: 44`54</pre>
+
+      <div class="section-label">Diagnosis</div>
+      <div class="diagnosis">Prompt has 87`56=31. The ``` ` ``` rule is not `abs-diff-then-reverse`. Model applied abs-diff-reverse → |44-45|=1 → rev → 1. Correct rule yields 10. Numbers differ, not a format issue.</div>
+
+      <div class="section-label">Model reasoning tail</div>
+      <pre>Applying to 44`54:
+  reversed operands [44-&gt;44, 54-&gt;45] and reversed result
+  absolute difference f(44, 45) = |44 - 45| = 1 -rev-&gt; 1
+  Result: 【1】
+
+I will now return the answer in 
+The answer in  is 
+&lt;/think&gt;
+&lt;/think&gt;
+\boxed{1}</pre>
+    </div>
+    
+
+    <div class="card" style="border-left-color:#b47aea;" id="card-2">
+      <div class="card-head">
+        <div>
+          <span class="idx">#3</span>
+          <span class="pid">0c8a8a16</span>
+        </div>
+        <span class="class-badge" style="background:#b47aea22;color:#b47aea;border-color:#b47aea;">GT data bug + wrong rule</span>
+      </div>
+      <div class="meta">
+        <span class="pill gt">Ground truth: <b>{17</b></span>
+        <span class="pill pred">Predicted: <b>82</b></span>
+        <span class="pill bad">NOT a scorer issue</span>
+      </div>
+
+      <div class="section-label">Prompt</div>
+      <pre class="prompt">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+99&lt;53 = 153
+19&lt;85 = 105
+78&lt;81 = 160
+55{44 = 11
+Now, determine the result for: 37{54</pre>
+
+      <div class="section-label">Diagnosis</div>
+      <div class="diagnosis">GT = `{17` has a leading `{` (LaTeX-bleed). Looking at the sole `{` example in the prompt (55{44=11), it seems the `{` operator prepends `{` in some conditions. Model applied abs-diff-reverse → 82, which is also numerically wrong. Even a lenient scorer wouldn&#x27;t recover this (17 ≠ 82).</div>
+
+      <div class="section-label">Model reasoning tail</div>
+      <pre>Applying to 37{54:
+  reversed operands [37-&gt;73, 54-&gt;45] and reversed result
+  absolute difference f(73, 45) = |73 - 45| = 28 -rev-&gt; 82
+  Result: 【82】
+
+I will now return the answer in 
+The answer in  is 
+&lt;/think&gt;
+&lt;/think&gt;
+\boxed{82}</pre>
+    </div>
+    
+
+    <div class="card" style="border-left-color:#e05252;" id="card-3">
+      <div class="card-head">
+        <div>
+          <span class="idx">#4</span>
+          <span class="pid">1019ee55</span>
+        </div>
+        <span class="class-badge" style="background:#e0525222;color:#e05252;border-color:#e05252;">Wrong transformation function</span>
+      </div>
+      <div class="meta">
+        <span class="pill gt">Ground truth: <b>1162</b></span>
+        <span class="pill pred">Predicted: <b>7953</b></span>
+        <span class="pill bad">NOT a scorer issue</span>
+      </div>
+
+      <div class="section-label">Prompt</div>
+      <pre class="prompt">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+97]07 = 1355
+31^75 = ^44
+33^72 = 6
+Now, determine the result for: 54]85</pre>
+
+      <div class="section-label">Diagnosis</div>
+      <div class="diagnosis">Prompt: 97]07=1355. Model applied `multiply+1 then reverse` for `]` → 7953 vs expected 1162. Genuine rule-selection error.</div>
+
+      <div class="section-label">Model reasoning tail</div>
+      <pre>Applying to 54]85:
+  reversed operands [54-&gt;45, 85-&gt;58] and reversed result
+  multiply+1 f(45, 58) = (58 + 4) * 58 + 1 = 58 * 58 + 4 * 58 + 1 = 3364 + 232 + 1 = 3596 + 1 = 3597 -rev-&gt; 7953
+  Result: 【7953】
+
+I will now return the answer in 
+The answer in  is 
+&lt;/think&gt;
+&lt;/think&gt;
+\boxed{7953}</pre>
+    </div>
+    
+
+    <div class="card" style="border-left-color:#e0943a;" id="card-4">
+      <div class="card-head">
+        <div>
+          <span class="idx">#5</span>
+          <span class="pid">10fdae00</span>
+        </div>
+        <span class="class-badge" style="background:#e0943a22;color:#e0943a;border-color:#e0943a;">Signed / abs confusion (semantic)</span>
+      </div>
+      <div class="meta">
+        <span class="pill gt">Ground truth: <b>-47</b></span>
+        <span class="pill pred">Predicted: <b>47</b></span>
+        <span class="pill bad">NOT a scorer issue</span>
+      </div>
+
+      <div class="section-label">Prompt</div>
+      <pre class="prompt">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+64*81 = 928
+95+95 = 911
+97-03 = 94
+Now, determine the result for: 52-99</pre>
+
+      <div class="section-label">Diagnosis</div>
+      <div class="diagnosis">Prompt: 97-03=94 (i.e. the `-` rule returns |97-03|=94 here, so sign is ambiguous from the single example). For 52-99 the GT=-47 uses signed subtraction then reverse; model used abs-diff-reverse → 47. The sign carries meaning — can&#x27;t be stripped; needs better rule disambiguation.</div>
+
+      <div class="section-label">Model reasoning tail</div>
+      <pre>Applying to 52-99:
+  reversed operands [52-&gt;25, 99-&gt;99] and reversed result
+  absolute difference f(25, 99) = |25 - 99| = 74 -rev-&gt; 47
+  Result: 【47】
+
+I will now return the answer in 
+The answer in  is 
+&lt;/think&gt;
+&lt;/think&gt;
+\boxed{47}</pre>
+    </div>
+    
+
+    <div class="card" style="border-left-color:#e0943a;" id="card-5">
+      <div class="card-head">
+        <div>
+          <span class="idx">#6</span>
+          <span class="pid">157228d7</span>
+        </div>
+        <span class="class-badge" style="background:#e0943a22;color:#e0943a;border-color:#e0943a;">Prefix carries meaning (semantic)</span>
+      </div>
+      <div class="meta">
+        <span class="pill gt">Ground truth: <b>35</b></span>
+        <span class="pill pred">Predicted: <b>*35</b></span>
+        <span class="pill warn">Recoverable only if GT is corrected</span>
+      </div>
+
+      <div class="section-label">Prompt</div>
+      <pre class="prompt">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+28&lt;40 = 69
+82&lt;68 = 151
+28*78 = *50
+Now, determine the result for: 50*15</pre>
+
+      <div class="section-label">Diagnosis</div>
+      <div class="diagnosis">Prompt has 28*78=*50 — the `*` operator does prepend `*` to negative results. Model applied exactly that pattern → `*35`. GT = `35` (no prefix) is inconsistent with the example. Either GT is wrong here, or the rule is conditional in a way the prompt doesn&#x27;t demonstrate.</div>
+
+      <div class="section-label">Model reasoning tail</div>
+      <pre>Applying to 50*15:
+  identity
+  negated absolute difference f(50, 15) = -|50 - 15| = -35
+  Result is negative - we add back the operator prefix 【*】: -35 -&gt; 【*35】
+  Result: 【*35】
+
+I will now return the answer in 
+The answer in  is 
+&lt;/think&gt;
+&lt;/think&gt;
+\boxed{*35}</pre>
+    </div>
+    
+
+    <div class="card" style="border-left-color:#e05252;" id="card-6">
+      <div class="card-head">
+        <div>
+          <span class="idx">#7</span>
+          <span class="pid">16699d43</span>
+        </div>
+        <span class="class-badge" style="background:#e0525222;color:#e05252;border-color:#e05252;">Wrong transformation function</span>
+      </div>
+      <div class="meta">
+        <span class="pill gt">Ground truth: <b>10</b></span>
+        <span class="pill pred">Predicted: <b>1</b></span>
+        <span class="pill bad">NOT a scorer issue</span>
+      </div>
+
+      <div class="section-label">Prompt</div>
+      <pre class="prompt">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+33@37 = 71
+67}12 = 6712
+45+21 = 24
+Now, determine the result for: 67+57</pre>
+
+      <div class="section-label">Diagnosis</div>
+      <div class="diagnosis">Prompt: 45+21=24. Correct rule for `+` here outputs 10 for 67+57. Model applied abs-diff-reverse → |76-75|=1 → rev → 1. Rule-selection error.</div>
+
+      <div class="section-label">Model reasoning tail</div>
+      <pre>Applying to 67+57:
+  reversed operands [67-&gt;76, 57-&gt;75] and reversed result
+  absolute difference f(76, 75) = |76 - 75| = 1 -rev-&gt; 1
+  Result: 【1】
+
+I will now return the answer in 
+The answer in  is 
+&lt;/think&gt;
+&lt;/think&gt;
+\boxed{1}</pre>
+    </div>
+    
+
+</body></html>
