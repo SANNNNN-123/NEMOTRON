@@ -1,0 +1,69 @@
+---
+1. Model always produces an answer — never fails to format
+
+Zero cases of missing \boxed{}. All 117 wrong predictions are confidently wrong, not format failures. Good news.
+
+---
+2. Data quality bug — double </think> in output
+
+I will now return the answer in
+The answer in  is
+</think>
+</think>          ← double!
+\boxed{00011111}
+Two issues:
+- Garbled sentences still present (I will now return the answer in) — our CoT cleaning missed some
+- Double </think> — the chat template adds one and the training data has another. Model learned this pattern
+
+---
+3. bit_manipulation (23 wrong) — model reasons but makes logic errors
+
+Answer:    01000011
+Predicted: 00011111
+The model goes through the full analysis (AND-NOT, identity checks, etc.) but reaches the wrong conclusion. Not a format issue — the reasoning is wrong. Needs better
+training data or more epochs.
+
+---
+4. equation_numeric_deduce (7 wrong) — NOT a format mismatch (revised)
+
+Initial hypothesis was that the model "strips special characters" (e.g. predicts 17 when the GT is 17/). After cross-checking, this was wrong:
+
+- All 7 GT answers are byte-identical to data/train.csv — the official dataset carries them exactly as shown (17/, {17, -47, *35, …).
+- Relaxing verify() to strip edge characters would rescue only 1 of the 7 (00d8b3db). The other 6 are real wrong numbers or real missing/extra sign/prefix.
+- The symbolic answers are a legitimate, common pattern in this category — not noise.
+
+Distribution of GT answer formats inside equation_numeric_deduce (1,555 train rows):
+
+┌───────────────────────────┬───────┬───────────────┐
+│          Pattern          │ Count │    Example    │
+├───────────────────────────┼───────┼───────────────┤
+│ Pure numeric (positive)   │   639 │ 17, 6644, 631 │
+├───────────────────────────┼───────┼───────────────┤
+│ of which negative (-NN)   │    48 │ -47, -35, -62 │
+├───────────────────────────┼───────┼───────────────┤
+│ Leading symbol only       │    34 │ {17, *53, @9  │
+├───────────────────────────┼───────┼───────────────┤
+│ Trailing symbol only      │    81 │ 17/, 03!, 53@ │
+├───────────────────────────┼───────┼───────────────┤
+│ Both leading AND trailing │   752 │ @&, |@{, \^?  │
+├───────────────────────────┼───────┼───────────────┤
+│ Empty answer              │     0 │ —             │
+└───────────────────────────┴───────┴───────────────┘
+
+=> 58.9% of equation_numeric_deduce answers contain at least one non-numeric character (or sign). The symbol IS part of the answer; it is produced by the puzzle rule. Stripping it in the scorer would mask real rule failures.
+
+Breakdown of the 7 errors:
+- 3 wrong transformation (model picked the wrong rule)           0bcffccd, 1019ee55, 16699d43
+- 1 GT with trailing '/' that the model didn't reproduce          00d8b3db  <- only true "format" case
+- 1 GT with '{' prefix AND wrong number                           0c8a8a16
+- 1 sign error (signed vs abs difference)                         10fdae00
+- 1 prefix error (model added '*' that GT doesn't have)           157228d7
+
+=> Real recoverable-by-scorer ceiling: 1 row, not 7. Actual fix direction is better CoT coverage for the signed / prefix / suffix rule families — same refinement pattern we used for bit_manipulation.
+
+---
+5. cryptarithm categories (75 wrong) — genuinely hard, data-limited
+
+Model attempts the puzzles but fails. Fundamental data problem (few rule_found examples).
+
+---
