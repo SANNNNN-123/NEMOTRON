@@ -215,3 +215,92 @@ Score      : 0.81 ✓ (same score, half the time)
 │ Tong 0.85 (completion-only loss)         │   7,830 │   245 │  16×2=32  │  ~20min │        0.386 │    0.00047 │    N/A  │  0.85 │
 └──────────────────────────────────────────┴─────────┴───────┴───────────┴─────────┴──────────────┴────────────┴─────────┴───────┘
 
+
+
+══════════════════════════════════════════════════════════════════════════════════════
+ NEW TRAINING RUNS — bit_manipulation CoT experiments (from-scratch base model)
+══════════════════════════════════════════════════════════════════════════════════════
+
+─────────────────────────────────────────────────────────────────────────────────────
+Experiment 1 — problem_ids_matched_v6.csv
+─────────────────────────────────────────────────────────────────────────────────────
+Dataset : error_analysis/88_0/problem_ids_matched_v6.csv  |  Rows: 6,403
+  bit_manipulation CoT: 20-rule, "I will solve..." opening, CORRECT/WRONG, no bit-serial, no </think>
+Training log: Steps 201/Ep1 | 178.1 min | VRAM 87.11GB | Loss 6.27→0.79
+Validation:
+  bit_manipulation:  18/169 =  10.7%  contrib 1.9%  ← very poor
+  TOTAL:            703/950 =  74.0%  score ~0.70
+Root cause: unfamiliar opening phrase → model looped/hallucinated
+
+─────────────────────────────────────────────────────────────────────────────────────
+Experiment 2 — problem_ids_matched_v7_hybrid.csv
+─────────────────────────────────────────────────────────────────────────────────────
+Dataset : error_analysis/88_0/problem_ids_matched_v7_hybrid.csv  |  Rows: 6,403
+  bit_manipulation CoT: 20-rule, "We need to deduce..." opening, bit-serial all examples, </think>
+Training log: Steps 201/Ep1 | 186.4 min | VRAM 87.11GB | Loss 5.54→0.68
+Validation:
+  bit_manipulation:  31/169 =  18.3%  contrib 3.3%  ← +7.6pp
+  TOTAL:            715/950 =  75.3%  score 0.70
+
+─────────────────────────────────────────────────────────────────────────────────────
+Experiment 3 — problem_ids_matched_v8.csv
+─────────────────────────────────────────────────────────────────────────────────────
+Dataset : error_analysis/88_0/problem_ids_matched_v8.csv  |  Rows: 6,403
+  bit_manipulation CoT: 20-rule, FAIL/PASS, "ONLY if ALL examples", bit-serial query, ~30 lines
+Training log: Steps 201/Ep1 | 178.4 min | VRAM 87.11GB | Loss 7.53→0.935
+Validation:
+  bit_manipulation:  32/169 =  18.9%  contrib 3.4%  ← marginal gain
+  TOTAL:            715/950 =  75.3%  score 0.70
+
+─────────────────────────────────────────────────────────────────────────────────────
+Experiment 4 — problem_ids_matched_v9.csv
+─────────────────────────────────────────────────────────────────────────────────────
+Dataset : error_analysis/88_0/problem_ids_matched_v9.csv  |  Rows: 6,417
+  bit_manipulation CoT: structured RuleID+Rule+Transforms+Output, balanced 80/rule
+Training log: Steps 201/Ep1 | 177.0 min | VRAM 86.77GB | Loss 9.70→1.61 (never converged)
+Validation:
+  bit_manipulation:  27/169 =  16.0%  contrib 2.8%  ← WORSE (Rule 12 collapse, alien format)
+  TOTAL:            710/950 =  74.7%  score 0.70
+
+─────────────────────────────────────────────────────────────────────────────────────
+Experiment 5 — problem_ids_matched_v10.csv  ★ BREAKTHROUGH
+─────────────────────────────────────────────────────────────────────────────────────
+Dataset : error_analysis/88_0/problem_ids_matched_v10.csv  |  Rows: 6,181
+  bit_manipulation: 1364 — reasoning.py familiar column-hashing format, solver-verified correct
+Training log: Steps 194/Ep1 | 191.4 min | VRAM 90.43GB | Loss 6.36→0.67 (excellent)
+Validation:
+  bit_manipulation: 139/169 =  82.2%  contrib 14.6%  ← +63.3pp BREAKTHROUGH
+  cipher:           160/162 =  98.8%
+  gravity:          158/159 =  99.4%
+  numeral:          149/149 = 100.0%
+  unit_conversion:  171/171 = 100.0%
+  TOTAL:            827/950 =  87.1%  score 0.81
+Key insight: model already knows familiar format → SFT only needs to reinforce correct examples
+
+─────────────────────────────────────────────────────────────────────────────────────
+Experiment 6 — problem_ids_matched_v11.csv  (PENDING)
+─────────────────────────────────────────────────────────────────────────────────────
+Dataset : error_analysis/88_0/problem_ids_matched_v11.csv  |  Rows: 6,407
+  bit_manipulation: 1590 = v10 verified (1364) + 226 new from 248 missing
+  Method: column-analysis kept from reasoning.py, application section replaced by solver
+  Coverage: 1590/1602 = 99.3%
+Validation: PENDING
+
+──────────────────────────────────────────────────────────────────────────────────────
+ SUMMARY TABLE
+──────────────────────────────────────────────────────────────────────────────────────
+┌────────────┬───────────────┬───────────┬──────────────────────────────────────────────────────────────────────────────┬───────┬───────────────────┐
+│ Experiment │    Dataset    │   Time    │                        bit_manipulation CoT                                  │ Score │ bit_manip val     │
+├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
+│ Exp 1      │ v6.csv        │ 178.1 min │ 20-rule, "I will solve..." opening, CORRECT/WRONG, no bit-serial             │ 0.70  │ 10.7% (18/169)    │
+├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
+│ Exp 2      │ v7_hybrid.csv │ 186.4 min │ 20-rule, "We need to deduce..." opening, bit-serial all examples             │ 0.70  │ 18.3% (31/169)    │
+├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
+│ Exp 3      │ v8.csv        │ 178.4 min │ 20-rule, FAIL/PASS only, "ONLY if ALL examples", bit-serial query            │ 0.70  │ 18.9% (32/169)    │
+├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
+│ Exp 4      │ v9.csv        │ 177.0 min │ structured RuleID+Rule+Transforms+Output, balanced 80/rule                   │ 0.70  │ 16.0% (27/169)    │
+├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
+│ Exp 5      │ v10.csv       │ 191.4 min │ reasoning.py familiar format, solver-verified correct only, 1364/1602        │ 0.81  │ 82.2% (139/169)   │
+├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
+│ Exp 6      │ v11.csv       │ pending   │ v10 + 226 solver-patched (column-analysis + solver application), 1590/1602   │  TBD  │ pending           │
+└────────────┴───────────────┴───────────┴──────────────────────────────────────────────────────────────────────────────┴───────┴───────────────────┘
