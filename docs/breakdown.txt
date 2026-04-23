@@ -278,13 +278,22 @@ Validation:
 Key insight: model already knows familiar format → SFT only needs to reinforce correct examples
 
 ─────────────────────────────────────────────────────────────────────────────────────
-Experiment 6 — problem_ids_matched_v11.csv  (PENDING)
+Experiment 6 — problem_ids_matched_v11.csv
 ─────────────────────────────────────────────────────────────────────────────────────
 Dataset : error_analysis/88_0/problem_ids_matched_v11.csv  |  Rows: 6,407
-  bit_manipulation: 1590 = v10 verified (1364) + 226 new from 248 missing
+  bit_manipulation: 1590 = v10 verified (1364) + 226 solver-patched from 248 missing
   Method: column-analysis kept from reasoning.py, application section replaced by solver
   Coverage: 1590/1602 = 99.3%
-Validation: PENDING
+
+Training log: Steps 201/Ep1 | 202.4 min | VRAM 90.86GB (94.6%) | Loss 6.30→0.68
+
+Validation:
+  bit_manipulation: 147/169 = 87.0%  contrib 15.5%  ← +4.8pp vs Exp 5
+  cipher:           160/162 = 98.8%
+  gravity:          157/159 = 98.7%
+  numeral:          149/149 = 100.0%
+  unit_conversion:  171/171 = 100.0%
+  TOTAL:            833/950 = 87.7%  score 0.82
 
 ──────────────────────────────────────────────────────────────────────────────────────
  SUMMARY TABLE
@@ -302,5 +311,5 @@ Validation: PENDING
 ├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
 │ Exp 5      │ v10.csv       │ 191.4 min │ reasoning.py familiar format, solver-verified correct only, 1364/1602        │ 0.81  │ 82.2% (139/169)   │
 ├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
-│ Exp 6      │ v11.csv       │ pending   │ v10 + 226 solver-patched (column-analysis + solver application), 1590/1602   │  TBD  │ pending           │
+│ Exp 6      │ v11.csv       │ 202.4 min │ v10 + 226 solver-patched (column-analysis + solver application), 1590/1602   │ 0.82  │ 87.0% (147/169)   │
 └────────────┴───────────────┴───────────┴──────────────────────────────────────────────────────────────────────────────┴───────┴───────────────────┘
