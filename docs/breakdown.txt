@@ -295,6 +295,29 @@ Validation:
   unit_conversion:  171/171 = 100.0%
   TOTAL:            833/950 = 87.7%  score 0.82
 
+─────────────────────────────────────────────────────────────────────────────────────
+Experiment 7 — problem_ids_matched_v13.csv
+─────────────────────────────────────────────────────────────────────────────────────
+Dataset : error_analysis/88_0_v2/problem_ids_matched_v13.csv  |  Rows: 7,029
+  cipher:           1,576 — v11 CoT + word-count check instruction added to opening
+    Refined prefix: "...I will put my final answer inside \boxed{}.Crucially, you
+    must ensure the number of words in your final \boxed{} answer exactly matches
+    the number of words in the original encrypted text. Before providing the final
+    answer, perform a word-count check to ensure no decrypted words were omitted
+    during transcription."
+  gravity:          1,597 — v11 (976) + 621 missing rows added from
+    train_split_with_cot_0.81_filtered.csv (same d=k*t^2 CoT format, 100% coverage)
+  bit_manipulation: 1,590 — unchanged from v11
+  unit_conversion:    990 — unchanged from v11
+  numeral:            650 — unchanged from v11
+  equation_numeric_deduce: 540 — unchanged from v11
+  cryptarithm_deduce:  54 — unchanged from v11
+  equation_numeric_guess:  21 — unchanged from v11
+  cryptarithm_guess:   11 — unchanged from v11
+
+Training log: TBD
+Validation:    TBD
+
 ──────────────────────────────────────────────────────────────────────────────────────
  SUMMARY TABLE
 ──────────────────────────────────────────────────────────────────────────────────────
@@ -312,4 +335,6 @@ Validation:
 │ Exp 5      │ v10.csv       │ 191.4 min │ reasoning.py familiar format, solver-verified correct only, 1364/1602        │ 0.81  │ 82.2% (139/169)   │
 ├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
 │ Exp 6      │ v11.csv       │ 202.4 min │ v10 + 226 solver-patched (column-analysis + solver application), 1590/1602   │ 0.82  │ 87.0% (147/169)   │
+├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
+│ Exp 7      │ v13.csv       │ TBD       │ v11 unchanged — cipher word-count check added, gravity completed 976→1597    │ TBD   │ TBD               │
 └────────────┴───────────────┴───────────┴──────────────────────────────────────────────────────────────────────────────┴───────┴───────────────────┘
