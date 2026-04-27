@@ -315,6 +315,42 @@ Dataset : error_analysis/88_0_v2/problem_ids_matched_v13.csv  |  Rows: 7,029
   equation_numeric_guess:  21 — unchanged from v11
   cryptarithm_guess:   11 — unchanged from v11
 
+Training log: Steps 220/Ep1 | 221.7 min | VRAM 90.79GB (94.6%) | Loss 6.12→0.62
+
+Validation:
+                         correct  total weightage percentage contribution
+  bit_manipulation           149    169     17.8%      88.2%        15.7%
+  cipher                     161    162     17.1%      99.4%        16.9%
+  cryptarithm_deduce           3     71      7.5%       4.2%         0.3%
+  cryptarithm_guess            3     14      1.5%      21.4%         0.3%
+  equation_numeric_deduce     41     48      5.1%      85.4%         4.3%
+  equation_numeric_guess       0      7      0.7%       0.0%         0.0%
+  gravity                    159    159     16.7%     100.0%        16.7%
+  numeral                    149    149     15.7%     100.0%        15.7%
+  unit_conversion            171    171     18.0%     100.0%        18.0%
+  TOTAL                      836    950    100.0%      88.0%   score 0.81
+
+missing lot of cryptarithm_deduce,cryptarithm_guess
+
+─────────────────────────────────────────────────────────────────────────────────────
+Experiment 8 — problem_ids_matched_v14.csv
+─────────────────────────────────────────────────────────────────────────────────────
+Dataset : error_analysis/88_0_v3/problem_ids_matched_v14.csv  |  Rows: 8,067
+  cryptarithm_deduce: 1,092 — replaced v13's 54 broken concat-fallback rows with
+    91 solver-verified rows × 12x upsample, from Los Anormales notebook
+    (error_analysis/88_0_v3/problem_ids_matched_v2.csv). Solver uses brute-force
+    digit+operator deduction (add/abs_diff/mul/concat/rev_concat), CoT narrates
+    full symbol-to-digit mapping, operator mapping, example verification, query
+    computation. Only puzzles where solver answer == train.csv ground truth kept.
+  gravity:          1,597 — unchanged from v13
+  bit_manipulation: 1,590 — unchanged from v13
+  cipher:           1,576 — unchanged from v13 (word-count check CoT)
+  unit_conversion:    990 — unchanged from v13
+  numeral:            650 — unchanged from v13
+  equation_numeric_deduce: 540 — unchanged from v13
+  equation_numeric_guess:   21 — unchanged from v13
+  cryptarithm_guess:        11 — unchanged from v13 (still weak, solver found 0 verified)
+
 Training log: TBD
 Validation:    TBD
 
@@ -336,5 +372,7 @@ Validation:    TBD
 ├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
 │ Exp 6      │ v11.csv       │ 202.4 min │ v10 + 226 solver-patched (column-analysis + solver application), 1590/1602   │ 0.82  │ 87.0% (147/169)   │
 ├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
-│ Exp 7      │ v13.csv       │ TBD       │ v11 unchanged — cipher word-count check added, gravity completed 976→1597    │ TBD   │ TBD               │
+│ Exp 7      │ v13.csv       │ 221.7 min │ v11 unchanged — cipher word-count check added, gravity completed 976→1597    │ 0.81  │ 88.2% (149/169)   │ <--start here we experiment other categories
+├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
+│ Exp 8      │ v14.csv       │ TBD       │ v13 + cryptarithm_deduce replaced: 54 broken → 1092 solver-verified (12x)    │ TBD   │ TBD               │
 └────────────┴───────────────┴───────────┴──────────────────────────────────────────────────────────────────────────────┴───────┴───────────────────┘
