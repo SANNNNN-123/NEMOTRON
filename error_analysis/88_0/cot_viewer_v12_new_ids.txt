@@ -1,0 +1,23 @@
+# One problem id per line (8 hex chars). Order = Prev/Next order in cot_viewer_v12_new.html
+000b53cf
+00890aff
+0245b9bb
+02a66bcb
+0311b798
+032fc96f
+034fb629
+046e8532
+04d8c3e6
+05ca617c
+06698d4e
+06881e47
+0b404f15
+0ec17d2e
+107badb0
+1126e314
+132ec6ae
+13eebe61
+1496dfeb
+16db2c74
+16e73f0e
+172d2417

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bit_manipulation_87_0 — viewer</title>
+<style>
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #0f1117;
+  color: #e0e0e0;
+  margin: 0;
+  padding: 20px;
+}
+h1 { color: #7eb8f7; margin-bottom: 4px; font-size: 1.35rem; }
+.subtitle { color: #888; font-size: 13px; margin-bottom: 20px; }
+.nav { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.nav button {
+  background: #2a2d3a;
+  color: #ccc;
+  border: 1px solid #444;
+  padding: 7px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.nav button:hover { background: #3a3d4a; color: #fff; }
+.counter {
+  background: #1e2130;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 13px;
+  color: #7eb8f7;
+}
+.search-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.search-bar input[type=text] {
+  background: #2a2d3a;
+  color: #e0e0e0;
+  border: 1px solid #444;
+  padding: 7px 12px;
+  border-radius: 6px;
+  width: 200px;
+  font-size: 14px;
+  font-family: monospace;
+  outline: none;
+}
+.search-bar input[type=text]:focus { border-color: #7eb8f7; }
+.search-bar button {
+  background: #2a2d3a;
+  color: #ccc;
+  border: 1px solid #444;
+  padding: 7px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.search-bar button:hover { background: #3a3d4a; }
+.notfound { color: #eb5757; font-size: 13px; display: none; }
+input[type=number] {
+  background: #2a2d3a;
+  color: #ccc;
+  border: 1px solid #444;
+  padding: 5px 10px;
+  border-radius: 6px;
+  width: 70px;
+  font-size: 14px;
+}
+.card {
+  background: #1a1d2e;
+  border: 1px solid #2e3250;
+  border-radius: 10px;
+  padding: 24px;
+  max-width: 960px;
+}
+.card.hidden { display: none; }
+.card-header { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+.badge {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: monospace;
+}
+.badge-id { background: #2a2d4a; color: #9ab4f7; }
+.badge-ans { background: #1a3a2a; color: #6fcf97; }
+.badge-pred-wrong { background: #3a1a1a; color: #eb5757; }
+.badge-pred-ok { background: #1a2a3a; color: #56ccf2; }
+.badge-cat { background: #2a2d3a; color: #bbb; }
+.badge-corr { background: #2d2a1a; color: #f2994a; }
+.badge-mlp { background: #1a1d2e; color: #888; font-size: 11px; }
+.section { margin-bottom: 18px; }
+.section-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #666;
+  margin-bottom: 8px;
+}
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.section-head .section-label { margin-bottom: 0; }
+.copy-btn {
+  background: #2a4d6a;
+  color: #b8d4f0;
+  border: 1px solid #4a6a88;
+  padding: 4px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.copy-btn:hover { background: #3a5d7a; color: #fff; }
+.copy-btn.copied { background: #1a3a2a; border-color: #3d6a4a; color: #6fcf97; }
+.prompt-box {
+  background: #12141f;
+  border: 1px solid #2a2d40;
+  border-radius: 6px;
+  padding: 14px 16px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+  color: #b0b8d0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.cot-box {
+  background: #12141f;
+  border: 1px solid #2a2d40;
+  border-radius: 6px;
+  padding: 16px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  color: #c8d0e8;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.div { border: none; border-top: 1px solid #2e3250; margin: 14px 0; }
+</style>
+</head>
+<body>
+<h1>bit_manipulation_87_0</h1>
+<div class="subtitle"><code>bit_manipulation_87_0.csv</code> — 0 rows (excluding ids in <code>cot_viewer_v12_new_ids.txt</code>: 000b53cf, 00890aff, 0245b9bb, 02a66bcb, 0311b798, 032fc96f, 034fb629, 046e8532, 04d8c3e6, 05ca617c, 06698d4e, 06881e47, 0b404f15, 0ec17d2e, 107badb0, 1126e314, 132ec6ae, 13eebe61, 1496dfeb, 16db2c74, 16e73f0e, 172d2417)</div>
+<div class="nav">
+  <button type="button" onclick="prev()">Prev</button>
+  <button type="button" onclick="next()">Next</button>
+  <span>Go to #:</span>
+  <input type="number" id="gi" min="1" max="1" value="1" onchange="goTo(this.value)">
+  <div class="counter" id="ctr">1 / 1</div>
+</div>
+<div class="search-bar">
+  <span style="color:#888;font-size:14px">Search by ID:</span>
+  <input type="text" id="si" placeholder="8-char id" maxlength="8"
+    oninput="document.getElementById('nf').style.display='none'"
+    onkeydown="if(event.key==='Enter')doSearch()">
+  <button type="button" onclick="doSearch()">Find</button>
+  <span class="notfound" id="nf">ID not found</span>
+</div>
+<div id="cards">
+<p style="color:#888">No rows left after exclusion.</p>
+</div>
+<script>
+const total = 0;
+const ids = [];
+let cur = 0;
+function copyCurrentOutput(btn) {
+  if (total === 0) return;
+  const card = document.getElementById('card-' + cur);
+  const box = card.querySelector('.cot-box');
+  if (!box) return;
+  const text = box.innerText;
+  const doFlash = () => {
+    if (!btn) return;
+    btn.classList.add('copied');
+    const t = btn.textContent;
+    btn.textContent = 'Copied';
+    setTimeout(() => {
+      btn.textContent = t;
+      btn.classList.remove('copied');
+    }, 1400);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(doFlash).catch(() => fallbackCopy(text, btn, doFlash));
+  } else {
+    fallbackCopy(text, btn, doFlash);
+  }
+}
+function fallbackCopy(text, btn, flash) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    if (flash) flash();
+  } catch (e) {
+    alert('Copy not supported in this browser.');
+  }
+  document.body.removeChild(ta);
+}
+function show(n) {
+  if (total === 0) return;
+  document.getElementById('card-' + cur).classList.add('hidden');
+  cur = Math.max(0, Math.min(total - 1, n));
+  document.getElementById('card-' + cur).classList.remove('hidden');
+  document.getElementById('ctr').textContent = (cur + 1) + ' / ' + total;
+  document.getElementById('gi').value = cur + 1;
+  window.scrollTo(0, 0);
+}
+function prev() { show(cur - 1); }
+function next() { show(cur + 1); }
+function goTo(v) { show(parseInt(v, 10) - 1); }
+function doSearch() {
+  if (total === 0) return;
+  const q = document.getElementById('si').value.trim().toLowerCase();
+  if (!q) return;
+  let i = ids.findIndex(x => x.toLowerCase() === q);
+  if (i === -1) i = ids.findIndex(x => x.toLowerCase().startsWith(q));
+  if (i !== -1) {
+    document.getElementById('nf').style.display = 'none';
+    show(i);
+  } else {
+    document.getElementById('nf').style.display = 'inline';
+  }
+}
+document.addEventListener('keydown', e => {
+  if (total === 0) return;
+  if (document.activeElement === document.getElementById('si')) return;
+  if (e.key === 'ArrowRight') next();
+  if (e.key === 'ArrowLeft') prev();
+});
+</script>
+</body>
+</html>
