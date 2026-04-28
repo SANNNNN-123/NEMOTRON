@@ -439,6 +439,43 @@ Note: Adding crypto_guess(154) + eq_num_guess(126) from original did not help sc
   87.6% vs Exp 9's 84.6% but overall score dropped due to dilution from weak-CoT rows.
 
 
+─────────────────────────────────────────────────────────────────────────────────────
+Experiment 11 — problem_ids_matched_v16.csv
+─────────────────────────────────────────────────────────────────────────────────────
+Dataset : error_analysis/88_0_v3/problem_ids_matched_v16.csv  |  Rows: 7,157
+  cryptarithm_deduce:   182 — 91 solver-verified × 2x upsample (down from 3x in Exp 9)
+    Motivation: Exp 9 (3x=273, 3.8%) scored 0.85. Testing if 2x (2.5%) reduces
+    dilution further and recovers bit_manipulation toward Exp 7's 88.2%.
+  gravity:          1,597 — unchanged from v13
+  bit_manipulation: 1,590 — unchanged from v13
+  cipher:           1,576 — unchanged from v13 (word-count check CoT)
+  unit_conversion:    990 — unchanged from v13
+  numeral:            650 — unchanged from v13
+  equation_numeric_deduce: 540 — unchanged from v13
+  equation_numeric_guess:   21 — unchanged from v13
+  cryptarithm_guess:        11 — unchanged from v13
+
+Note: Also uses combined training+validation notebook (new-training-unsloth-086.ipynb)
+  — validation runs automatically after training in the same notebook session.
+
+Training log: Steps 224/Ep1 | 221.8 min | VRAM 90.65GB (94.4%) | Loss 6.39→0.69
+
+Validation:
+                         correct  total weightage percentage contribution
+  bit_manipulation           148    169     17.8%      87.6%        15.6%
+  cipher                     159    162     17.1%      98.1%        16.7%
+  cryptarithm_deduce           2     71      7.5%       2.8%         0.2%
+  cryptarithm_guess            1     14      1.5%       7.1%         0.1%
+  equation_numeric_deduce     42     48      5.1%      87.5%         4.4%
+  equation_numeric_guess       0      7      0.7%       0.0%         0.0%
+  gravity                    158    159     16.7%      99.4%        16.6%
+  numeral                    149    149     15.7%     100.0%        15.7%
+  unit_conversion            170    171     18.0%      99.4%        17.9%
+  TOTAL                      829    950    100.0%      87.3%   score 0.83
+
+Note: Reducing 3x→2x made things worse (0.85→0.83). cryptarithm_deduce dropped
+  further to 2.8% (was 5.6% at 3x). Confirms Exp 9 (3x) is the sweet spot so far.
+  Exp 9 remains best baseline at 0.85.
 
 ──────────────────────────────────────────────────────────────────────────────────────
  SUMMARY TABLE
@@ -462,7 +499,9 @@ Note: Adding crypto_guess(154) + eq_num_guess(126) from original did not help sc
 ├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
 │ Exp 8      │ v14.csv       │ 244.3 min │ v13 + cryptarithm_deduce replaced: 54 broken → 1092 solver-verified (12x)    │ 0.81  │ 81.7% (138/169)   │ --degress
 ├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
-│ Exp 9      │ v14_reduce    │ 227.2 min │ v13 + cryptarithm_deduce 91 solver-verified × 3x = 273 rows (3.8% of data)   │ 0.85  │ 84.6% (143/169)   │
+│ Exp 9      │ v14_reduce    │ 227.2 min │ v13 + cryptarithm_deduce 91 solver-verified × 3x = 273 rows (3.8% of data)   │ 0.85  │ 84.6% (143/169)   │ ==BEST SCORE SO FAR.
 ├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
 │ Exp 10     │ v15.csv       │ 233.8 min │ v13 core + crypto_deduce 273(3x) + crypto_guess 154 + eq_guess 126 (orig)    │ 0.82  │ 87.6% (148/169)   │
+├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
+│ Exp 11     │ v16.csv       │ 221.8 min │ Exp9 baseline (v14_reduce) with crypto_deduce reduced 3x→2x (182 rows, 2.5%) │ 0.83  │ 87.6% (148/169)   │
 └────────────┴───────────────┴───────────┴──────────────────────────────────────────────────────────────────────────────┴───────┴───────────────────┘
