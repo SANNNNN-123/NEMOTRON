@@ -387,8 +387,57 @@ Dataset : error_analysis/88_0_v3/problem_ids_matched_v14_reduce.csv  |  Rows: 7,
   equation_numeric_guess:   21 — unchanged from v13
   cryptarithm_guess:        11 — unchanged from v13
 
-Training log: TBD
-Validation:    TBD
+Training log: Steps 227/Ep1 | 227.2 min | VRAM 90.55GB (94.3%) | Loss 6.62→0.68
+
+Validation:
+                         correct  total weightage percentage contribution
+  bit_manipulation           143    169     17.8%      84.6%        15.1%
+  cipher                     160    162     17.1%      98.8%        16.8%
+  cryptarithm_deduce           4     71      7.5%       5.6%         0.4%
+  cryptarithm_guess            0     14      1.5%       0.0%         0.0%
+  equation_numeric_deduce     41     48      5.1%      85.4%         4.3%
+  equation_numeric_guess       0      7      0.7%       0.0%         0.0%
+  gravity                    157    159     16.7%      98.7%        16.5%
+  numeral                    149    149     15.7%     100.0%        15.7%
+  unit_conversion            171    171     18.0%     100.0%        18.0%
+  TOTAL                      825    950    100.0%      86.8%   score 0.85
+
+Note: Best score so far (0.85). 3x upsample less harmful than 12x but cryptarithm
+  still very weak (5.6%). bit_manipulation slight regression vs Exp 7 (88.2%→84.6%).
+
+─────────────────────────────────────────────────────────────────────────────────────
+Experiment 10 — problem_ids_matched_v15.csv
+─────────────────────────────────────────────────────────────────────────────────────
+Dataset : error_analysis/88_0_v3/problem_ids_matched_v15.csv  |  Rows: 7,496
+  bit_manipulation: 1,590 — v13 (our best, 88.2% val in Exp 7)
+  cipher:           1,576 — v13 (word-count check CoT)
+  gravity:          1,597 — v13 (100% val)
+  numeral:            650 — v13 (100% val)
+  unit_conversion:    990 — v13 (100% val)
+  equation_numeric_deduce: 540 — v13
+  cryptarithm_deduce:  273 — v14_reduce (91 solver-verified × 3x)
+  cryptarithm_guess:   154 — original problem_ids_matched.csv (was 0% in Exp 7/8)
+  equation_numeric_guess: 126 — original problem_ids_matched.csv (was 0% in Exp 7/8)
+
+Training log: Steps 235/Ep1 | 233.8 min | VRAM 91.17GB (95.0%) | Loss 6.70→0.67
+
+Validation:
+                         correct  total weightage percentage contribution
+  bit_manipulation           148    169     17.8%      87.6%        15.6%
+  cipher                     160    162     17.1%      98.8%        16.8%
+  cryptarithm_deduce           5     71      7.5%       7.0%         0.5%
+  cryptarithm_guess            0     14      1.5%       0.0%         0.0%
+  equation_numeric_deduce     42     48      5.1%      87.5%         4.4%
+  equation_numeric_guess       0      7      0.7%       0.0%         0.0%
+  gravity                    158    159     16.7%      99.4%        16.6%
+  numeral                    149    149     15.7%     100.0%        15.7%
+  unit_conversion            171    171     18.0%     100.0%        18.0%
+  TOTAL                      833    950    100.0%      87.7%   score 0.82
+
+Note: Adding crypto_guess(154) + eq_num_guess(126) from original did not help score
+  (0.82 vs Exp 9's 0.85). Both categories still 0%. bit_manipulation recovered to
+  87.6% vs Exp 9's 84.6% but overall score dropped due to dilution from weak-CoT rows.
+
 
 
 ──────────────────────────────────────────────────────────────────────────────────────
@@ -413,5 +462,7 @@ Validation:    TBD
 ├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
 │ Exp 8      │ v14.csv       │ 244.3 min │ v13 + cryptarithm_deduce replaced: 54 broken → 1092 solver-verified (12x)    │ 0.81  │ 81.7% (138/169)   │ --degress
 ├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
-│ Exp 9      │ v14_reduce    │ TBD       │ v13 + cryptarithm_deduce 91 solver-verified × 3x = 273 rows (3.8% of data)   │ TBD   │ TBD               │
+│ Exp 9      │ v14_reduce    │ 227.2 min │ v13 + cryptarithm_deduce 91 solver-verified × 3x = 273 rows (3.8% of data)   │ 0.85  │ 84.6% (143/169)   │
+├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
+│ Exp 10     │ v15.csv       │ 233.8 min │ v13 core + crypto_deduce 273(3x) + crypto_guess 154 + eq_guess 126 (orig)    │ 0.82  │ 87.6% (148/169)   │
 └────────────┴───────────────┴───────────┴──────────────────────────────────────────────────────────────────────────────┴───────┴───────────────────┘
