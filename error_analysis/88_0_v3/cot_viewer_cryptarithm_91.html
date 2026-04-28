@@ -1,0 +1,4531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cryptarithm Deduce — 91 Solver-Verified CoTs</title>
+<style>
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #0f1117;
+  color: #e0e0e0;
+  margin: 0;
+  padding: 20px;
+}
+h1 { color: #7eb8f7; margin-bottom: 4px; font-size: 1.35rem; }
+.subtitle { color: #888; font-size: 13px; margin-bottom: 20px; }
+.summary-bar { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.summary-item {
+  background: #1a1d2e; border: 1px solid #2e3250;
+  border-radius: 8px; padding: 10px 18px; font-size: 13px;
+}
+.summary-item .label { color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+.summary-item .val { color: #7eb8f7; font-size: 18px; font-weight: 700; margin-top: 2px; }
+.nav { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.nav button {
+  background: #2a2d3a; color: #ccc; border: 1px solid #444;
+  padding: 7px 18px; border-radius: 6px; cursor: pointer; font-size: 14px;
+}
+.nav button:hover { background: #3a3d4a; color: #fff; }
+.counter {
+  background: #1e2130; border: 1px solid #333; border-radius: 6px;
+  padding: 5px 14px; font-size: 13px; color: #7eb8f7;
+}
+.search-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.search-bar input[type=text] {
+  background: #2a2d3a; color: #e0e0e0; border: 1px solid #444;
+  padding: 7px 12px; border-radius: 6px; width: 200px;
+  font-size: 14px; font-family: monospace; outline: none;
+}
+.search-bar input[type=text]:focus { border-color: #7eb8f7; }
+.search-bar button {
+  background: #2a2d3a; color: #ccc; border: 1px solid #444;
+  padding: 7px 16px; border-radius: 6px; cursor: pointer;
+}
+.search-bar button:hover { background: #3a3d4a; }
+.notfound { color: #eb5757; font-size: 13px; display: none; }
+input[type=number] {
+  background: #2a2d3a; color: #ccc; border: 1px solid #444;
+  padding: 5px 10px; border-radius: 6px; width: 70px; font-size: 14px;
+}
+.card {
+  background: #1a1d2e; border: 1px solid #2e3250;
+  border-radius: 10px; padding: 24px; max-width: 1100px;
+}
+.card.hidden { display: none; }
+.card-header { display: flex; gap: 10px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+.badge {
+  padding: 3px 10px; border-radius: 12px;
+  font-size: 12px; font-weight: 600; font-family: monospace;
+}
+.badge-id { background: #2a2d4a; color: #9ab4f7; }
+.badge-ans { background: #1a3a2a; color: #6fcf97; }
+.badge-type { background: #2a2d3a; color: #bbb; }
+.badge-num { background: #1a2a3a; color: #56ccf2; font-size: 11px; }
+.section { margin-bottom: 18px; }
+.section-label {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: 1px; color: #666; margin-bottom: 8px;
+}
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 8px; flex-wrap: wrap;
+}
+.section-head .section-label { margin-bottom: 0; }
+.copy-btn {
+  background: #2a4d6a; color: #b8d4f0; border: 1px solid #4a6a88;
+  padding: 4px 14px; border-radius: 6px; cursor: pointer;
+  font-size: 12px; font-family: inherit; flex-shrink: 0;
+}
+.copy-btn:hover { background: #3a5d7a; color: #fff; }
+.copy-btn.copied { background: #1a3a2a; border-color: #3d6a4a; color: #6fcf97; }
+.prompt-box {
+  background: #12141f; border: 1px solid #2a2d40; border-radius: 6px;
+  padding: 14px 16px; font-family: ui-monospace, Consolas, monospace;
+  font-size: 13px; white-space: pre-wrap; color: #b0b8d0;
+  max-height: 220px; overflow-y: auto;
+}
+.cot-box {
+  background: #12141f; border: 1px solid #2a2d40; border-radius: 6px;
+  padding: 16px; font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px; white-space: pre-wrap; line-height: 1.6;
+  color: #c8d0e8; max-height: 65vh; overflow-y: auto;
+}
+.div { border: none; border-top: 1px solid #2e3250; margin: 14px 0; }
+.source { color: #666; font-size: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<h1>Cryptarithm Deduce — 91 Solver-Verified CoTs</h1>
+<div class="subtitle">
+  Source: <code>error_analysis/88_0_v3/output_problem_ids_matched_v2.csv</code> &nbsp;·&nbsp;
+  Brute-force solver (add / abs_diff / mul / concat / rev_concat) &nbsp;·&nbsp;
+  Only puzzles where solver answer == ground-truth answer kept &nbsp;·&nbsp;
+  Used in v14.csv as 91 × 12x = 1,092 training rows
+</div>
+
+<div class="summary-bar">
+  <div class="summary-item"><div class="label">Unique Puzzles</div><div class="val">91</div></div>
+  <div class="summary-item"><div class="label">In Training (12x)</div><div class="val">1,092</div></div>
+  <div class="summary-item"><div class="label">Category</div><div class="val" style="font-size:13px;margin-top:4px">cryptarithm_deduce</div></div>
+</div>
+
+<div class="nav">
+  <button type="button" onclick="prev()">Prev</button>
+  <button type="button" onclick="next()">Next</button>
+  <span>Go to #:</span>
+  <input type="number" id="gi" min="1" max="91" value="1" onchange="goTo(this.value)">
+  <div class="counter" id="ctr">1 / 91</div>
+</div>
+<div class="search-bar">
+  <span style="color:#888;font-size:14px">Search by ID:</span>
+  <input type="text" id="si" placeholder="8-char id" maxlength="8"
+    oninput="document.getElementById('nf').style.display='none'"
+    onkeydown="if(event.key==='Enter')doSearch()">
+  <button type="button" onclick="doSearch()">Find</button>
+  <span class="notfound" id="nf">ID not found</span>
+</div>
+
+<div id="cards">
+
+<div class="card" id="card-0" data-problem-id="524cb5c6">
+  <div class="card-header">
+    <span class="badge badge-id">524cb5c6</span>
+    <span class="badge badge-ans">answer: $&gt;&gt;\</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#1 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-524cb5c6')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-524cb5c6">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+$?:&gt;` = $?&gt;`
+\&lt;:\` = \&lt;\`
+\{@)? = @$)
+{`:?&gt; = {`?&gt;
+Now, determine the result for: $&gt;:&gt;\</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-524cb5c6')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-524cb5c6">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  $?:&gt;` = $?&gt;`: the output is the first two symbols followed by the last two (concat).
+  \&lt;:\` = \&lt;\`: the output is the first two symbols followed by the last two (concat).
+  \{@)? = @$): arithmetic operation.
+  {`:?&gt; = {`?&gt;: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;:&#x27; acts as concat.
+Apply concat to $&gt;:&gt;\: output = first two symbols then last two.
+Resulting string: $&gt;&gt;\</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-1" data-problem-id="02a04b59">
+  <div class="card-header">
+    <span class="badge badge-id">02a04b59</span>
+    <span class="badge badge-ans">answer: #&gt;]#</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#2 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-02a04b59')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-02a04b59">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+#&quot;*/[ = #&quot;/[
+]&gt;+\$ = #[$
+\/+/[ = #&lt;&gt;
+Now, determine the result for: #&gt;*]#</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-02a04b59')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-02a04b59">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  #&quot;*/[ = #&quot;/[: the output is the first two symbols followed by the last two (concat).
+  ]&gt;+\$ = #[$: arithmetic operation.
+  \/+/[ = #&lt;&gt;: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to #&gt;*]#: output = first two symbols then last two.
+Resulting string: #&gt;]#</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-2" data-problem-id="8043a9d2">
+  <div class="card-header">
+    <span class="badge badge-id">8043a9d2</span>
+    <span class="badge badge-ans">answer: $|\:</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#3 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-8043a9d2')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-8043a9d2">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+(|*)? = )?(|
+|(*]# = ]#|(
+??-(# = |$
+$\*\\ = \\$\
+Now, determine the result for: \:*$|</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-8043a9d2')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-8043a9d2">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  (|*)? = )?(|: the output is the last two symbols followed by the first two (rev_concat).
+  |(*]# = ]#|(: the output is the last two symbols followed by the first two (rev_concat).
+  ??-(# = |$: arithmetic operation.
+  $\*\\ = \\$\: the output is the last two symbols followed by the first two (rev_concat).
+
+The question operator &#x27;*&#x27; acts as rev_concat.
+Apply rev_concat to \:*$|: output = last two symbols then first two.
+Resulting string: $|\:</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-3" data-problem-id="610bf536">
+  <div class="card-header">
+    <span class="badge badge-id">610bf536</span>
+    <span class="badge badge-ans">answer: ^</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#4 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-610bf536')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-610bf536">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+\^+|| = &amp;|)
+^\+&amp;# = &quot;&amp;
+&amp;}-&amp;&amp; = &amp;
+^%+\@ = &amp;@\
+|%+\@ = &amp;^\
+Now, determine the result for: #}-#^</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-610bf536')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-610bf536">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;}&#x27; = 0
+  &#x27;&amp;&#x27; = 1
+  &#x27;#&#x27; = 2
+  &#x27;)&#x27; = 3
+  &#x27;%&#x27; = 4
+  &#x27;@&#x27; = 5
+  &#x27;^&#x27; = 6
+  &#x27;|&#x27; = 7
+  &#x27;&quot;&#x27; = 8
+  &#x27;\\&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;+&#x27; = add
+  &#x27;-&#x27; = abs_diff
+
+Verification on the examples:
+  \^+|| = &amp;|): 96 + 77 = 173
+  ^\+&amp;# = &quot;&amp;: 69 + 12 = 81
+  &amp;}-&amp;&amp; = &amp;: |10 - 11| = 1
+  ^%+\@ = &amp;@\: 64 + 95 = 159
+  |%+\@ = &amp;^\: 74 + 95 = 169
+
+Apply to the query: #}-#^
+  &#x27;#&#x27;&#x27;}&#x27; = 20, &#x27;#&#x27;&#x27;^&#x27; = 26
+  Operator &#x27;-&#x27; is abs_diff.
+  |20 - 26| = 6
+  Translate digits back to symbols: 6 -&gt; &#x27;^&#x27;
+  Resulting string: ^</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-4" data-problem-id="f8bbabab">
+  <div class="card-header">
+    <span class="badge badge-id">f8bbabab</span>
+    <span class="badge badge-ans">answer: &gt;^`&gt;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#5 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-f8bbabab')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-f8bbabab">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+[^+:` = :`[^
+&lt;^*!^ = ![@
+&lt;`+`] = `]&lt;`
+Now, determine the result for: `&gt;+&gt;^</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-f8bbabab')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-f8bbabab">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  [^+:` = :`[^: the output is the last two symbols followed by the first two (rev_concat).
+  &lt;^*!^ = ![@: arithmetic operation.
+  &lt;`+`] = `]&lt;`: the output is the last two symbols followed by the first two (rev_concat).
+
+The question operator &#x27;+&#x27; acts as rev_concat.
+Apply rev_concat to `&gt;+&gt;^: output = last two symbols then first two.
+Resulting string: &gt;^`&gt;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-5" data-problem-id="7681df4d">
+  <div class="card-header">
+    <span class="badge badge-id">7681df4d</span>
+    <span class="badge badge-ans">answer: &lt;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#6 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-7681df4d')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-7681df4d">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+!`-`! = &quot;
+!{+&amp;` = ??
+@&quot;+?! = {&amp;&amp;
+&amp;{+?&lt; = &lt;#
+&quot;!-#{ = {&amp;
+Now, determine the result for: &amp;@-!!</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-7681df4d')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-7681df4d">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;{&#x27; = 1
+  &#x27;&amp;&#x27; = 2
+  &#x27;!&#x27; = 3
+  &#x27;`&#x27; = 4
+  &#x27;?&#x27; = 5
+  &#x27;@&#x27; = 6
+  &#x27;&lt;&#x27; = 7
+  &#x27;#&#x27; = 8
+  &#x27;&quot;&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;+&#x27; = add
+  &#x27;-&#x27; = abs_diff
+
+Verification on the examples:
+  !`-`! = &quot;: |34 - 43| = 9
+  !{+&amp;` = ??: 31 + 24 = 55
+  @&quot;+?! = {&amp;&amp;: 69 + 53 = 122
+  &amp;{+?&lt; = &lt;#: 21 + 57 = 78
+  &quot;!-#{ = {&amp;: |93 - 81| = 12
+
+Apply to the query: &amp;@-!!
+  &#x27;&amp;&#x27;&#x27;@&#x27; = 26, &#x27;!&#x27;&#x27;!&#x27; = 33
+  Operator &#x27;-&#x27; is abs_diff.
+  |26 - 33| = 7
+  Translate digits back to symbols: 7 -&gt; &#x27;&lt;&#x27;
+  Resulting string: &lt;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-6" data-problem-id="065abaf6">
+  <div class="card-header">
+    <span class="badge badge-id">065abaf6</span>
+    <span class="badge badge-ans">answer: &amp;/:\</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#7 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-065abaf6')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-065abaf6">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+/}-\` = ]
+](-]: = -&amp;/
+\]+&amp;( = &amp;(\]
+\#-{] = -#
+:{*#\ = ((`{
+Now, determine the result for: :\+&amp;/</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-065abaf6')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-065abaf6">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  /}-\` = ]: arithmetic operation.
+  ](-]: = -&amp;/: arithmetic operation.
+  \]+&amp;( = &amp;(\]: the output is the last two symbols followed by the first two (rev_concat).
+  \#-{] = -#: arithmetic operation.
+  :{*#\ = ((`{: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as rev_concat.
+Apply rev_concat to :\+&amp;/: output = last two symbols then first two.
+Resulting string: &amp;/:\</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-7" data-problem-id="24e1f1d5">
+  <div class="card-header">
+    <span class="badge badge-id">24e1f1d5</span>
+    <span class="badge badge-ans">answer: ^#(!</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#8 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-24e1f1d5')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-24e1f1d5">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+%!+&lt;} = %!&lt;}
+&lt;^*&quot;^ = [&quot;(
+!\*%[ = #}(\
+^&lt;*&lt;&lt; = ^&quot;&lt;
+Now, determine the result for: ^#+(!</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-24e1f1d5')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-24e1f1d5">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  %!+&lt;} = %!&lt;}: the output is the first two symbols followed by the last two (concat).
+  &lt;^*&quot;^ = [&quot;(: arithmetic operation.
+  !\*%[ = #}(\: arithmetic operation.
+  ^&lt;*&lt;&lt; = ^&quot;&lt;: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to ^#+(!: output = first two symbols then last two.
+Resulting string: ^#(!</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-8" data-problem-id="9fc69c17">
+  <div class="card-header">
+    <span class="badge badge-id">9fc69c17</span>
+    <span class="badge badge-ans">answer: #&#x27;:@</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#9 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-9fc69c17')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-9fc69c17">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+/$-/[ = $
+|@*:] = |@:]
+@@-]/ = &amp;
+Now, determine the result for: #&#x27;*:@</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-9fc69c17')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-9fc69c17">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  /$-/[ = $: arithmetic operation.
+  |@*:] = |@:]: the output is the first two symbols followed by the last two (concat).
+  @@-]/ = &amp;: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to #&#x27;*:@: output = first two symbols then last two.
+Resulting string: #&#x27;:@</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-9" data-problem-id="7d8f22b1">
+  <div class="card-header">
+    <span class="badge badge-id">7d8f22b1</span>
+    <span class="badge badge-ans">answer: #)&gt;|</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#10 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-7d8f22b1')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-7d8f22b1">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+!&gt;*}&gt; = !&gt;}&gt;
+])+!] = //!
+!%-}! = }#
+&gt;)-{{ = -!{
+Now, determine the result for: #)*&gt;|</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-7d8f22b1')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-7d8f22b1">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  !&gt;*}&gt; = !&gt;}&gt;: the output is the first two symbols followed by the last two (concat).
+  ])+!] = //!: arithmetic operation.
+  !%-}! = }#: arithmetic operation.
+  &gt;)-{{ = -!{: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to #)*&gt;|: output = first two symbols then last two.
+Resulting string: #)&gt;|</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-10" data-problem-id="39c237c7">
+  <div class="card-header">
+    <span class="badge badge-id">39c237c7</span>
+    <span class="badge badge-ans">answer: {]``</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#11 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-39c237c7')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-39c237c7">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+)\*// = ])`\
+/{+&#x27;{ = /{&#x27;{
+]&amp;+/` = ]&amp;/`
+Now, determine the result for: {]+``</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-39c237c7')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-39c237c7">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  )\*// = ])`\: arithmetic operation.
+  /{+&#x27;{ = /{&#x27;{: the output is the first two symbols followed by the last two (concat).
+  ]&amp;+/` = ]&amp;/`: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to {]+``: output = first two symbols then last two.
+Resulting string: {]``</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-11" data-problem-id="97d6db7a">
+  <div class="card-header">
+    <span class="badge badge-id">97d6db7a</span>
+    <span class="badge badge-ans">answer: \[%^</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#12 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-97d6db7a')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-97d6db7a">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+%#+&amp;! = #%
+##*^! = ##^!
+[}+^[ = &amp;%#
+%\*`&amp; = %\`&amp;
+Now, determine the result for: \[*%^</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-97d6db7a')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-97d6db7a">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  %#+&amp;! = #%: arithmetic operation.
+  ##*^! = ##^!: the output is the first two symbols followed by the last two (concat).
+  [}+^[ = &amp;%#: arithmetic operation.
+  %\*`&amp; = %\`&amp;: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to \[*%^: output = first two symbols then last two.
+Resulting string: \[%^</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-12" data-problem-id="f624f57c">
+  <div class="card-header">
+    <span class="badge badge-id">f624f57c</span>
+    <span class="badge badge-ans">answer: [</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#13 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-f624f57c')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-f624f57c">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+[[&gt;[| = @@|
+$(&gt;&#x27;/ = &#x27;]&#x27;/
+/(:(@ = ]$
+?]&gt;$@ = `|&#x27;@
+Now, determine the result for: $@:$(</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-f624f57c')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-f624f57c">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;|&#x27; = 0
+  &#x27;]&#x27; = 1
+  &quot;&#x27;&quot; = 2
+  &#x27;[&#x27; = 3
+  &#x27;`&#x27; = 4
+  &#x27;?&#x27; = 5
+  &#x27;(&#x27; = 6
+  &#x27;$&#x27; = 7
+  &#x27;/&#x27; = 8
+  &#x27;@&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;:&#x27; = abs_diff
+  &#x27;&gt;&#x27; = mul
+
+Verification on the examples:
+  [[&gt;[| = @@|: 33 * 30 = 990
+  $(&gt;&#x27;/ = &#x27;]&#x27;/: 76 * 28 = 2128
+  /(:(@ = ]$: |86 - 69| = 17
+  ?]&gt;$@ = `|&#x27;@: 51 * 79 = 4029
+
+Apply to the query: $@:$(
+  &#x27;$&#x27;&#x27;@&#x27; = 79, &#x27;$&#x27;&#x27;(&#x27; = 76
+  Operator &#x27;:&#x27; is abs_diff.
+  |79 - 76| = 3
+  Translate digits back to symbols: 3 -&gt; &#x27;[&#x27;
+  Resulting string: [</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-13" data-problem-id="6f8261d9">
+  <div class="card-header">
+    <span class="badge badge-id">6f8261d9</span>
+    <span class="badge badge-ans">answer: \</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#14 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-6f8261d9')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-6f8261d9">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+/(-|\ = |
+(\-^% = &amp;%
+^(-|| = |&amp;
+)^-{\ = &amp;^
+|)-|\ = )
+Now, determine the result for: |(-|(</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-6f8261d9')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-6f8261d9">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;\\&#x27; = 0
+  &#x27;%&#x27; = 1
+  &#x27;&amp;&#x27; = 2
+  &#x27;/&#x27; = 3
+  &#x27;|&#x27; = 4
+  &#x27;{&#x27; = 5
+  &#x27;(&#x27; = 6
+  &#x27;)&#x27; = 7
+  &#x27;^&#x27; = 8
+
+Operator-to-operation mapping:
+  &#x27;-&#x27; = abs_diff
+
+Verification on the examples:
+  /(-|\ = |: |36 - 40| = 4
+  (\-^% = &amp;%: |60 - 81| = 21
+  ^(-|| = |&amp;: |86 - 44| = 42
+  )^-{\ = &amp;^: |78 - 50| = 28
+  |)-|\ = ): |47 - 40| = 7
+
+Apply to the query: |(-|(
+  &#x27;|&#x27;&#x27;(&#x27; = 46, &#x27;|&#x27;&#x27;(&#x27; = 46
+  Operator &#x27;-&#x27; is abs_diff.
+  |46 - 46| = 0
+  Translate digits back to symbols: 0 -&gt; &#x27;\\&#x27;
+  Resulting string: \</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-14" data-problem-id="b9b5a2c1">
+  <div class="card-header">
+    <span class="badge badge-id">b9b5a2c1</span>
+    <span class="badge badge-ans">answer: &amp;`</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#15 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-b9b5a2c1')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-b9b5a2c1">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&amp;&amp;*$( = :&lt;:&amp;
+`|*[&amp; = }|`#
+::*`} = (`:
+&amp;|-|&lt; = `&amp;
+&amp;:*[` = &lt;&lt;:|
+Now, determine the result for: |#-`|</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-b9b5a2c1')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-b9b5a2c1">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;#&#x27; = 0
+  &#x27;}&#x27; = 1
+  &#x27;`&#x27; = 2
+  &#x27;&lt;&#x27; = 3
+  &#x27;:&#x27; = 4
+  &#x27;&amp;&#x27; = 5
+  &#x27;[&#x27; = 6
+  &#x27;$&#x27; = 7
+  &#x27;|&#x27; = 8
+  &#x27;(&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;*&#x27; = mul
+  &#x27;-&#x27; = abs_diff
+
+Verification on the examples:
+  &amp;&amp;*$( = :&lt;:&amp;: 55 * 79 = 4345
+  `|*[&amp; = }|`#: 28 * 65 = 1820
+  ::*`} = (`:: 44 * 21 = 924
+  &amp;|-|&lt; = `&amp;: |58 - 83| = 25
+  &amp;:*[` = &lt;&lt;:|: 54 * 62 = 3348
+
+Apply to the query: |#-`|
+  &#x27;|&#x27;&#x27;#&#x27; = 80, &#x27;`&#x27;&#x27;|&#x27; = 28
+  Operator &#x27;-&#x27; is abs_diff.
+  |80 - 28| = 52
+  Translate digits back to symbols: 5 -&gt; &#x27;&amp;&#x27;, 2 -&gt; &#x27;`&#x27;
+  Resulting string: &amp;`</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-15" data-problem-id="758308ea">
+  <div class="card-header">
+    <span class="badge badge-id">758308ea</span>
+    <span class="badge badge-ans">answer: (</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#16 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-758308ea')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-758308ea">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&lt;$@(} = /&#x27;
+?(\}: = (%&#x27;&lt;
+:&lt;#%( = [[
+}$#%&#x27; = }}
+:}@&lt;% = %(
+Now, determine the result for: &lt;(#&lt;$</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-758308ea')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-758308ea">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &quot;&#x27;&quot; = 0
+  &#x27;&lt;&#x27; = 1
+  &#x27;[&#x27; = 2
+  &#x27;(&#x27; = 3
+  &#x27;}&#x27; = 4
+  &#x27;/&#x27; = 5
+  &#x27;$&#x27; = 6
+  &#x27;:&#x27; = 7
+  &#x27;?&#x27; = 8
+  &#x27;%&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;#&#x27; = abs_diff
+  &#x27;@&#x27; = add
+  &#x27;\\&#x27; = mul
+
+Verification on the examples:
+  &lt;$@(} = /&#x27;: 16 + 34 = 50
+  ?(\}: = (%&#x27;&lt;: 83 * 47 = 3901
+  :&lt;#%( = [[: |71 - 93| = 22
+  }$#%&#x27; = }}: |46 - 90| = 44
+  :}@&lt;% = %(: 74 + 19 = 93
+
+Apply to the query: &lt;(#&lt;$
+  &#x27;&lt;&#x27;&#x27;(&#x27; = 13, &#x27;&lt;&#x27;&#x27;$&#x27; = 16
+  Operator &#x27;#&#x27; is abs_diff.
+  |13 - 16| = 3
+  Translate digits back to symbols: 3 -&gt; &#x27;(&#x27;
+  Resulting string: (</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-16" data-problem-id="58eadc55">
+  <div class="card-header">
+    <span class="badge badge-id">58eadc55</span>
+    <span class="badge badge-ans">answer: !#</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#17 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-58eadc55')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-58eadc55">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+)`]\@ = )!$@
+\#|@# = )@`
+#{|`! = )!!
+Now, determine the result for: @@|@`</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-58eadc55')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-58eadc55">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;{&#x27; = 0
+  &#x27;)&#x27; = 1
+  &#x27;@&#x27; = 2
+  &#x27;!&#x27; = 4
+  &#x27;`&#x27; = 6
+  &#x27;$&#x27; = 7
+  &#x27;#&#x27; = 8
+  &#x27;\\&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;]&#x27; = mul
+  &#x27;|&#x27; = add
+
+Verification on the examples:
+  )`]\@ = )!$@: 16 * 92 = 1472
+  \#|@# = )@`: 98 + 28 = 126
+  #{|`! = )!!: 80 + 64 = 144
+
+Apply to the query: @@|@`
+  &#x27;@&#x27;&#x27;@&#x27; = 22, &#x27;@&#x27;&#x27;`&#x27; = 26
+  Operator &#x27;|&#x27; is add.
+  22 + 26 = 48
+  Translate digits back to symbols: 4 -&gt; &#x27;!&#x27;, 8 -&gt; &#x27;#&#x27;
+  Resulting string: !#</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-17" data-problem-id="108067c3">
+  <div class="card-header">
+    <span class="badge badge-id">108067c3</span>
+    <span class="badge badge-ans">answer: $$`</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#18 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-108067c3')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-108067c3">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&lt;\|[$ = $:[
+\)#$&#x27; = &lt;[&lt;
+{&#x27;#{` = &lt;&#x27;`
+{)#`) = $&lt;{[
+$\]@@ = )&lt;
+Now, determine the result for: [&#x27;|&lt;)</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-108067c3')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-108067c3">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;:&#x27; = 0
+  &#x27;$&#x27; = 1
+  &#x27;{&#x27; = 2
+  &#x27;\\&#x27; = 3
+  &#x27;[&#x27; = 4
+  &#x27;`&#x27; = 5
+  &#x27;&lt;&#x27; = 6
+  &quot;&#x27;&quot; = 7
+  &#x27;)&#x27; = 8
+  &#x27;@&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;#&#x27; = mul
+  &#x27;]&#x27; = abs_diff
+  &#x27;|&#x27; = add
+
+Verification on the examples:
+  &lt;\|[$ = $:[: 63 + 41 = 104
+  \)#$&#x27; = &lt;[&lt;: 38 * 17 = 646
+  {&#x27;#{` = &lt;&#x27;`: 27 * 25 = 675
+  {)#`) = $&lt;{[: 28 * 58 = 1624
+  $\]@@ = )&lt;: |13 - 99| = 86
+
+Apply to the query: [&#x27;|&lt;)
+  &#x27;[&#x27;&quot;&#x27;&quot; = 47, &#x27;&lt;&#x27;&#x27;)&#x27; = 68
+  Operator &#x27;|&#x27; is add.
+  47 + 68 = 115
+  Translate digits back to symbols: 1 -&gt; &#x27;$&#x27;, 1 -&gt; &#x27;$&#x27;, 5 -&gt; &#x27;`&#x27;
+  Resulting string: $$`</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-18" data-problem-id="7eecd498">
+  <div class="card-header">
+    <span class="badge badge-id">7eecd498</span>
+    <span class="badge badge-ans">answer: ^:`!</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#19 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-7eecd498')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-7eecd498">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&gt;`+&#x27;&amp; = `{/
+`{-&#x27;: = -&gt;&gt;
+/^-/^ = :
+^!-%^ = &gt;{
+&gt;:*!&#x27; = &gt;:!&#x27;
+Now, determine the result for: ^:*`!</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-7eecd498')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-7eecd498">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &gt;`+&#x27;&amp; = `{/: arithmetic operation.
+  `{-&#x27;: = -&gt;&gt;: arithmetic operation.
+  /^-/^ = :: arithmetic operation.
+  ^!-%^ = &gt;{: arithmetic operation.
+  &gt;:*!&#x27; = &gt;:!&#x27;: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to ^:*`!: output = first two symbols then last two.
+Resulting string: ^:`!</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-19" data-problem-id="d72d8c1c">
+  <div class="card-header">
+    <span class="badge badge-id">d72d8c1c</span>
+    <span class="badge badge-ans">answer: &amp;@&amp;%</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#20 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-d72d8c1c')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-d72d8c1c">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+%:`\: = %:\:
+\\&lt;($ = &lt;&#x27;%
+!&#x27;&lt;\( = (&amp;
+$&#x27;-$} = %:&amp;}
+%\`!% = %\!%
+Now, determine the result for: &amp;@`&amp;%</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-d72d8c1c')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-d72d8c1c">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  %:`\: = %:\:: the output is the first two symbols followed by the last two (concat).
+  \\&lt;($ = &lt;&#x27;%: arithmetic operation.
+  !&#x27;&lt;\( = (&amp;: arithmetic operation.
+  $&#x27;-$} = %:&amp;}: arithmetic operation.
+  %\`!% = %\!%: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;`&#x27; acts as concat.
+Apply concat to &amp;@`&amp;%: output = first two symbols then last two.
+Resulting string: &amp;@&amp;%</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-20" data-problem-id="cef50c24">
+  <div class="card-header">
+    <span class="badge badge-id">cef50c24</span>
+    <span class="badge badge-ans">answer: ?</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#21 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-cef50c24')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-cef50c24">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+/&lt;}&lt;! = /#&amp;/
+?/}`` = ?&lt;/
+&lt;{$#&lt; = `)
+/)}&quot;&lt; = )&quot;{#
+{`$?! = )?
+Now, determine the result for: `&lt;$`/</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-cef50c24')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-cef50c24">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;&amp;&#x27; = 0
+  &#x27;`&#x27; = 1
+  &#x27;{&#x27; = 2
+  &#x27;)&#x27; = 3
+  &#x27;/&#x27; = 4
+  &#x27;?&#x27; = 5
+  &#x27;!&#x27; = 6
+  &#x27;#&#x27; = 7
+  &#x27;&quot;&#x27; = 8
+  &#x27;&lt;&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;$&#x27; = abs_diff
+  &#x27;}&#x27; = mul
+
+Verification on the examples:
+  /&lt;}&lt;! = /#&amp;/: 49 * 96 = 4704
+  ?/}`` = ?&lt;/: 54 * 11 = 594
+  &lt;{$#&lt; = `): |92 - 79| = 13
+  /)}&quot;&lt; = )&quot;{#: 43 * 89 = 3827
+  {`$?! = )?: |21 - 56| = 35
+
+Apply to the query: `&lt;$`/
+  &#x27;`&#x27;&#x27;&lt;&#x27; = 19, &#x27;`&#x27;&#x27;/&#x27; = 14
+  Operator &#x27;$&#x27; is abs_diff.
+  |19 - 14| = 5
+  Translate digits back to symbols: 5 -&gt; &#x27;?&#x27;
+  Resulting string: ?</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-21" data-problem-id="162ff61a">
+  <div class="card-header">
+    <span class="badge badge-id">162ff61a</span>
+    <span class="badge badge-ans">answer: ?!</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#22 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-162ff61a')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-162ff61a">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+?%*!% = %?!\
+]!|?\ = ??
+\&gt;{^! = &amp;&lt;
+&gt;%|?! = [&amp;&amp;
+Now, determine the result for: ?&gt;{]&lt;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-162ff61a')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-162ff61a">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;&gt;&#x27; = 0
+  &#x27;]&#x27; = 0
+  &#x27;^&#x27; = 0
+  &#x27;!&#x27; = 1
+  &#x27;&lt;&#x27; = 1
+  &#x27;[&#x27; = 2
+  &#x27;%&#x27; = 5
+  &#x27;&amp;&#x27; = 5
+  &#x27;?&#x27; = 5
+  &#x27;\\&#x27; = 5
+
+Operator-to-operation mapping:
+  &#x27;*&#x27; = concat
+  &#x27;{&#x27; = add
+  &#x27;|&#x27; = mul
+
+Verification on the examples:
+  ?%*!% = %?!\: concat(55, 15) = 5515
+  ]!|?\ = ??: 1 * 55 = 55
+  \&gt;{^! = &amp;&lt;: 50 + 1 = 51
+  &gt;%|?! = [&amp;&amp;: 5 * 51 = 255
+
+Apply to the query: ?&gt;{]&lt;
+  &#x27;?&#x27;&#x27;&gt;&#x27; = 50, &#x27;]&#x27;&#x27;&lt;&#x27; = 1
+  Operator &#x27;{&#x27; is add.
+  50 + 1 = 51
+  Translate digits back to symbols: 5 -&gt; &#x27;?&#x27;, 1 -&gt; &#x27;!&#x27;
+  Resulting string: ?!</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-22" data-problem-id="e5b65a4c">
+  <div class="card-header">
+    <span class="badge badge-id">e5b65a4c</span>
+    <span class="badge badge-ans">answer: ``#</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#23 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-e5b65a4c')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-e5b65a4c">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+`)&lt;#` = ?%)
+%^@?` = |%
+)!@%? = `?#
+Now, determine the result for: |%@#)</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-e5b65a4c')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-e5b65a4c">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;`&#x27; = 1
+  &#x27;#&#x27; = 2
+  &#x27;?&#x27; = 3
+  &#x27;^&#x27; = 4
+  &#x27;%&#x27; = 5
+  &#x27;)&#x27; = 7
+  &#x27;|&#x27; = 8
+  &#x27;!&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;&lt;&#x27; = mul
+  &#x27;@&#x27; = add
+
+Verification on the examples:
+  `)&lt;#` = ?%): 17 * 21 = 357
+  %^@?` = |%: 54 + 31 = 85
+  )!@%? = `?#: 79 + 53 = 132
+
+Apply to the query: |%@#)
+  &#x27;|&#x27;&#x27;%&#x27; = 85, &#x27;#&#x27;&#x27;)&#x27; = 27
+  Operator &#x27;@&#x27; is add.
+  85 + 27 = 112
+  Translate digits back to symbols: 1 -&gt; &#x27;`&#x27;, 1 -&gt; &#x27;`&#x27;, 2 -&gt; &#x27;#&#x27;
+  Resulting string: ``#</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-23" data-problem-id="ff0e37ae">
+  <div class="card-header">
+    <span class="badge badge-id">ff0e37ae</span>
+    <span class="badge badge-ans">answer: %&#x27;&quot;`</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#24 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-ff0e37ae')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-ff0e37ae">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+?]*%% = ?]%%
+&quot;!*]? = &quot;!]?
+#|+`| = ?|
+Now, determine the result for: %&#x27;*&quot;`</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-ff0e37ae')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-ff0e37ae">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  ?]*%% = ?]%%: the output is the first two symbols followed by the last two (concat).
+  &quot;!*]? = &quot;!]?: the output is the first two symbols followed by the last two (concat).
+  #|+`| = ?|: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to %&#x27;*&quot;`: output = first two symbols then last two.
+Resulting string: %&#x27;&quot;`</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-24" data-problem-id="a08fbb68">
+  <div class="card-header">
+    <span class="badge badge-id">a08fbb68</span>
+    <span class="badge badge-ans">answer: \$&#x27;&lt;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#25 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-a08fbb68')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-a08fbb68">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+#{-&#x27;\ = -{&lt;
+]&lt;+{{ = ]&lt;{{
+$\+{&#x27; = $\{&#x27;
+!!-&#x27;\ = }
+Now, determine the result for: \$+&#x27;&lt;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-a08fbb68')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-a08fbb68">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  #{-&#x27;\ = -{&lt;: arithmetic operation.
+  ]&lt;+{{ = ]&lt;{{: the output is the first two symbols followed by the last two (concat).
+  $\+{&#x27; = $\{&#x27;: the output is the first two symbols followed by the last two (concat).
+  !!-&#x27;\ = }: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to \$+&#x27;&lt;: output = first two symbols then last two.
+Resulting string: \$&#x27;&lt;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-25" data-problem-id="c69b17bf">
+  <div class="card-header">
+    <span class="badge badge-id">c69b17bf</span>
+    <span class="badge badge-ans">answer: ?)</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#26 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-c69b17bf')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-c69b17bf">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+)%-%&gt; = `)
+?&gt;+)$ = &amp;^
+:&amp;+/&amp; = ??&gt;
+Now, determine the result for: )^-$)</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-c69b17bf')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-c69b17bf">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;^&#x27; = 0
+  &#x27;?&#x27; = 1
+  &#x27;:&#x27; = 2
+  &#x27;`&#x27; = 3
+  &#x27;&gt;&#x27; = 4
+  &#x27;)&#x27; = 5
+  &#x27;$&#x27; = 6
+  &#x27;&amp;&#x27; = 7
+  &#x27;/&#x27; = 8
+  &#x27;%&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;+&#x27; = add
+  &#x27;-&#x27; = abs_diff
+
+Verification on the examples:
+  )%-%&gt; = `): |59 - 94| = 35
+  ?&gt;+)$ = &amp;^: 14 + 56 = 70
+  :&amp;+/&amp; = ??&gt;: 27 + 87 = 114
+
+Apply to the query: )^-$)
+  &#x27;)&#x27;&#x27;^&#x27; = 50, &#x27;$&#x27;&#x27;)&#x27; = 65
+  Operator &#x27;-&#x27; is abs_diff.
+  |50 - 65| = 15
+  Translate digits back to symbols: 1 -&gt; &#x27;?&#x27;, 5 -&gt; &#x27;)&#x27;
+  Resulting string: ?)</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-26" data-problem-id="0d4b2baa">
+  <div class="card-header">
+    <span class="badge badge-id">0d4b2baa</span>
+    <span class="badge badge-ans">answer: :(|#</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#27 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-0d4b2baa')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-0d4b2baa">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+:$-:[ = }
+&#x27;}-|# = &lt;|
+:&lt;*(} = :&lt;(}
+Now, determine the result for: :(*|#</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-0d4b2baa')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-0d4b2baa">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  :$-:[ = }: arithmetic operation.
+  &#x27;}-|# = &lt;|: arithmetic operation.
+  :&lt;*(} = :&lt;(}: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to :(*|#: output = first two symbols then last two.
+Resulting string: :(|#</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-27" data-problem-id="8ca27f6f">
+  <div class="card-header">
+    <span class="badge badge-id">8ca27f6f</span>
+    <span class="badge badge-ans">answer: (]%/</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#28 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-8ca27f6f')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-8ca27f6f">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+\&quot;!&quot;/ = &quot;`
+]#{&quot;` = %%
+]/-#[ = &quot;\([
+(@!`\ = &quot;&quot;
+Now, determine the result for: ]%-#@</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-8ca27f6f')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-8ca27f6f">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;[&#x27; = 0
+  &#x27;`&#x27; = 1
+  &#x27;/&#x27; = 2
+  &#x27;&quot;&#x27; = 3
+  &#x27;(&#x27; = 4
+  &#x27;]&#x27; = 5
+  &#x27;\\&#x27; = 6
+  &#x27;#&#x27; = 7
+  &#x27;%&#x27; = 8
+  &#x27;@&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;!&#x27; = abs_diff
+  &#x27;-&#x27; = mul
+  &#x27;{&#x27; = add
+
+Verification on the examples:
+  \&quot;!&quot;/ = &quot;`: |63 - 32| = 31
+  ]#{&quot;` = %%: 57 + 31 = 88
+  ]/-#[ = &quot;\([: 52 * 70 = 3640
+  (@!`\ = &quot;&quot;: |49 - 16| = 33
+
+Apply to the query: ]%-#@
+  &#x27;]&#x27;&#x27;%&#x27; = 58, &#x27;#&#x27;&#x27;@&#x27; = 79
+  Operator &#x27;-&#x27; is mul.
+  58 * 79 = 4582
+  Translate digits back to symbols: 4 -&gt; &#x27;(&#x27;, 5 -&gt; &#x27;]&#x27;, 8 -&gt; &#x27;%&#x27;, 2 -&gt; &#x27;/&#x27;
+  Resulting string: (]%/</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-28" data-problem-id="d9575f79">
+  <div class="card-header">
+    <span class="badge badge-id">d9575f79</span>
+    <span class="badge badge-ans">answer: |`/}</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#29 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-d9575f79')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-d9575f79">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&gt;&quot;-]( = ](&quot;
+|&#x27;{(} = |&#x27;(}
+`&#x27;{(} = `&#x27;(}
+/|&amp;`&gt; = &amp;&gt;&#x27;
+/(-}| = (/&#x27;`
+Now, determine the result for: |`{/}</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-d9575f79')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-d9575f79">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &gt;&quot;-]( = ](&quot;: arithmetic operation.
+  |&#x27;{(} = |&#x27;(}: the output is the first two symbols followed by the last two (concat).
+  `&#x27;{(} = `&#x27;(}: the output is the first two symbols followed by the last two (concat).
+  /|&amp;`&gt; = &amp;&gt;&#x27;: arithmetic operation.
+  /(-}| = (/&#x27;`: arithmetic operation.
+
+The question operator &#x27;{&#x27; acts as concat.
+Apply concat to |`{/}: output = first two symbols then last two.
+Resulting string: |`/}</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-29" data-problem-id="d0b1e41a">
+  <div class="card-header">
+    <span class="badge badge-id">d0b1e41a</span>
+    <span class="badge badge-ans">answer: #{&quot;!</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#30 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-d0b1e41a')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-d0b1e41a">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+)#*)# = )#)#
+)}-#&quot; = -$
+&quot;$+`@ = &quot;$`@
+Now, determine the result for: #{*&quot;!</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-d0b1e41a')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-d0b1e41a">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  )#*)# = )#)#: the output is the first two symbols followed by the last two (concat).
+  )}-#&quot; = -$: arithmetic operation.
+  &quot;$+`@ = &quot;$`@: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to #{*&quot;!: output = first two symbols then last two.
+Resulting string: #{&quot;!</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-30" data-problem-id="85c5b2a2">
+  <div class="card-header">
+    <span class="badge badge-id">85c5b2a2</span>
+    <span class="badge badge-ans">answer: $&lt;$$</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#31 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-85c5b2a2')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-85c5b2a2">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+||#`| = |!:?
+`&lt;)?: = `&lt;?:
+&quot;&#x27;)!&lt; = &quot;&#x27;!&lt;
+&quot;`)&quot;: = &quot;`&quot;:
+Now, determine the result for: $&lt;)$$</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-85c5b2a2')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-85c5b2a2">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  ||#`| = |!:?: arithmetic operation.
+  `&lt;)?: = `&lt;?:: the output is the first two symbols followed by the last two (concat).
+  &quot;&#x27;)!&lt; = &quot;&#x27;!&lt;: the output is the first two symbols followed by the last two (concat).
+  &quot;`)&quot;: = &quot;`&quot;:: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;)&#x27; acts as concat.
+Apply concat to $&lt;)$$: output = first two symbols then last two.
+Resulting string: $&lt;$$</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-31" data-problem-id="a4ee9fa6">
+  <div class="card-header">
+    <span class="badge badge-id">a4ee9fa6</span>
+    <span class="badge badge-ans">answer: ^@|:</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#32 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-a4ee9fa6')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-a4ee9fa6">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+:#*@: = @//
+/#-#@ = -/#
+|&lt;*@&amp; = |&amp;^&amp;
+%&gt;-#&lt; = -@:
+/:+%/ = %//:
+Now, determine the result for: |:+^@</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-a4ee9fa6')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-a4ee9fa6">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  :#*@: = @//: arithmetic operation.
+  /#-#@ = -/#: arithmetic operation.
+  |&lt;*@&amp; = |&amp;^&amp;: arithmetic operation.
+  %&gt;-#&lt; = -@:: arithmetic operation.
+  /:+%/ = %//:: the output is the last two symbols followed by the first two (rev_concat).
+
+The question operator &#x27;+&#x27; acts as rev_concat.
+Apply rev_concat to |:+^@: output = last two symbols then first two.
+Resulting string: ^@|:</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-32" data-problem-id="b13d511a">
+  <div class="card-header">
+    <span class="badge badge-id">b13d511a</span>
+    <span class="badge badge-ans">answer: \&amp;[[</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#33 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-b13d511a')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-b13d511a">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&lt;[+&amp;&lt; = &lt;[&amp;&lt;
+)&amp;*#) = ){}}
+}{+{\ = }{{\
+{\*#} = {@#{
+{&amp;*^&lt; = )[&lt;&lt;
+Now, determine the result for: \&amp;+[[</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-b13d511a')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-b13d511a">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &lt;[+&amp;&lt; = &lt;[&amp;&lt;: the output is the first two symbols followed by the last two (concat).
+  )&amp;*#) = ){}}: arithmetic operation.
+  }{+{\ = }{{\: the output is the first two symbols followed by the last two (concat).
+  {\*#} = {@#{: arithmetic operation.
+  {&amp;*^&lt; = )[&lt;&lt;: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to \&amp;+[[: output = first two symbols then last two.
+Resulting string: \&amp;[[</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-33" data-problem-id="6beb3a1f">
+  <div class="card-header">
+    <span class="badge badge-id">6beb3a1f</span>
+    <span class="badge badge-ans">answer: ??</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#34 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-6beb3a1f')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-6beb3a1f">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&amp;\*&amp;[ = [`?^
+:)-^^ = [?
+&amp;`-/} = [`
+^:*`: = /\/:
+Now, determine the result for: `)-/[</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-6beb3a1f')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-6beb3a1f">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;}&#x27; = 0
+  &#x27;:&#x27; = 1
+  &#x27;[&#x27; = 2
+  &#x27;/&#x27; = 3
+  &#x27;^&#x27; = 4
+  &#x27;&amp;&#x27; = 5
+  &#x27;?&#x27; = 6
+  &#x27;\\&#x27; = 7
+  &#x27;)&#x27; = 8
+  &#x27;`&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;*&#x27; = mul
+  &#x27;-&#x27; = abs_diff
+
+Verification on the examples:
+  &amp;\*&amp;[ = [`?^: 57 * 52 = 2964
+  :)-^^ = [?: |18 - 44| = 26
+  &amp;`-/} = [`: |59 - 30| = 29
+  ^:*`: = /\/:: 41 * 91 = 3731
+
+Apply to the query: `)-/[
+  &#x27;`&#x27;&#x27;)&#x27; = 98, &#x27;/&#x27;&#x27;[&#x27; = 32
+  Operator &#x27;-&#x27; is abs_diff.
+  |98 - 32| = 66
+  Translate digits back to symbols: 6 -&gt; &#x27;?&#x27;, 6 -&gt; &#x27;?&#x27;
+  Resulting string: ??</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-34" data-problem-id="dc240ebd">
+  <div class="card-header">
+    <span class="badge badge-id">dc240ebd</span>
+    <span class="badge badge-ans">answer: `}:}</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#35 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-dc240ebd')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-dc240ebd">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&gt;@-`` = ::``
+:}-:: = &quot;|&lt;
+)&gt;-)&gt; = &gt;&quot;:&gt;
+@&gt;-)&lt; = @@)\
+)|-&lt;&quot; = &quot;:)&lt;
+Now, determine the result for: &gt;|-}|</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-dc240ebd')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-dc240ebd">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;\\&#x27; = 0
+  &#x27;@&#x27; = 1
+  &#x27;:&#x27; = 2
+  &#x27;|&#x27; = 3
+  &#x27;`&#x27; = 4
+  &#x27;&gt;&#x27; = 5
+  &#x27;&quot;&#x27; = 6
+  &#x27;)&#x27; = 7
+  &#x27;&lt;&#x27; = 8
+  &#x27;}&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;-&#x27; = mul
+
+Verification on the examples:
+  &gt;@-`` = ::``: 51 * 44 = 2244
+  :}-:: = &quot;|&lt;: 29 * 22 = 638
+  )&gt;-)&gt; = &gt;&quot;:&gt;: 75 * 75 = 5625
+  @&gt;-)&lt; = @@)\: 15 * 78 = 1170
+  )|-&lt;&quot; = &quot;:)&lt;: 73 * 86 = 6278
+
+Apply to the query: &gt;|-}|
+  &#x27;&gt;&#x27;&#x27;|&#x27; = 53, &#x27;}&#x27;&#x27;|&#x27; = 93
+  Operator &#x27;-&#x27; is mul.
+  53 * 93 = 4929
+  Translate digits back to symbols: 4 -&gt; &#x27;`&#x27;, 9 -&gt; &#x27;}&#x27;, 2 -&gt; &#x27;:&#x27;, 9 -&gt; &#x27;}&#x27;
+  Resulting string: `}:}</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-35" data-problem-id="9ceba70a">
+  <div class="card-header">
+    <span class="badge badge-id">9ceba70a</span>
+    <span class="badge badge-ans">answer: ##%</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#36 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-9ceba70a')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-9ceba70a">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+[(&amp;[( = &gt;}&gt;(
+&quot;}{\% = !}
+!!&amp;\} = (!%&gt;
+(#{`[ = #!
+!%&amp;\&gt; = (#}%
+Now, determine the result for: ((&amp;#%</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-9ceba70a')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-9ceba70a">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;%&#x27; = 0
+  &#x27;(&#x27; = 1
+  &#x27;}&#x27; = 2
+  &#x27;\\&#x27; = 3
+  &#x27;!&#x27; = 4
+  &#x27;#&#x27; = 5
+  &#x27;`&#x27; = 6
+  &#x27;&quot;&#x27; = 7
+  &#x27;&gt;&#x27; = 8
+  &#x27;[&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;&amp;&#x27; = mul
+  &#x27;{&#x27; = abs_diff
+
+Verification on the examples:
+  [(&amp;[( = &gt;}&gt;(: 91 * 91 = 8281
+  &quot;}{\% = !}: |72 - 30| = 42
+  !!&amp;\} = (!%&gt;: 44 * 32 = 1408
+  (#{`[ = #!: |15 - 69| = 54
+  !%&amp;\&gt; = (#}%: 40 * 38 = 1520
+
+Apply to the query: ((&amp;#%
+  &#x27;(&#x27;&#x27;(&#x27; = 11, &#x27;#&#x27;&#x27;%&#x27; = 50
+  Operator &#x27;&amp;&#x27; is mul.
+  11 * 50 = 550
+  Translate digits back to symbols: 5 -&gt; &#x27;#&#x27;, 5 -&gt; &#x27;#&#x27;, 0 -&gt; &#x27;%&#x27;
+  Resulting string: ##%</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-36" data-problem-id="cf79c10e">
+  <div class="card-header">
+    <span class="badge badge-id">cf79c10e</span>
+    <span class="badge badge-ans">answer: ?(</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#37 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-cf79c10e')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-cf79c10e">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+)}-]&gt; = &amp;?
+()-&lt;) = &amp;{
+]}\)&gt; = (&lt;&lt;&amp;
+??[}&lt; = #)
+Now, determine the result for: &gt;]-#&gt;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-cf79c10e')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-cf79c10e">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;{&#x27; = 0
+  &#x27;?&#x27; = 1
+  &#x27;&amp;&#x27; = 2
+  &#x27;&gt;&#x27; = 3
+  &#x27;}&#x27; = 4
+  &#x27;#&#x27; = 5
+  &#x27;(&#x27; = 6
+  &#x27;]&#x27; = 7
+  &#x27;&lt;&#x27; = 8
+  &#x27;)&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;-&#x27; = abs_diff
+  &#x27;[&#x27; = add
+  &#x27;\\&#x27; = mul
+
+Verification on the examples:
+  )}-]&gt; = &amp;?: |94 - 73| = 21
+  ()-&lt;) = &amp;{: |69 - 89| = 20
+  ]}\)&gt; = (&lt;&lt;&amp;: 74 * 93 = 6882
+  ??[}&lt; = #): 11 + 48 = 59
+
+Apply to the query: &gt;]-#&gt;
+  &#x27;&gt;&#x27;&#x27;]&#x27; = 37, &#x27;#&#x27;&#x27;&gt;&#x27; = 53
+  Operator &#x27;-&#x27; is abs_diff.
+  |37 - 53| = 16
+  Translate digits back to symbols: 1 -&gt; &#x27;?&#x27;, 6 -&gt; &#x27;(&#x27;
+  Resulting string: ?(</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-37" data-problem-id="ed61a9d6">
+  <div class="card-header">
+    <span class="badge badge-id">ed61a9d6</span>
+    <span class="badge badge-ans">answer: !&quot;&quot;!</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#38 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-ed61a9d6')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-ed61a9d6">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+}%*}) = ||)
+`^-%&quot; = %{
+|}-!? = )`
+{^+?) = {^?)
+}!+}^ = }!}^
+Now, determine the result for: !&quot;+&quot;!</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-ed61a9d6')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-ed61a9d6">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  }%*}) = ||): arithmetic operation.
+  `^-%&quot; = %{: arithmetic operation.
+  |}-!? = )`: arithmetic operation.
+  {^+?) = {^?): the output is the first two symbols followed by the last two (concat).
+  }!+}^ = }!}^: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to !&quot;+&quot;!: output = first two symbols then last two.
+Resulting string: !&quot;&quot;!</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-38" data-problem-id="e483e127">
+  <div class="card-header">
+    <span class="badge badge-id">e483e127</span>
+    <span class="badge badge-ans">answer: #&#x27;&#x27;&gt;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#39 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-e483e127')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-e483e127">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+)]}&gt;) = ]&gt;::
+)&#x27;{)&lt; = :&#x27;
+`#{|&#x27; = &#x27;])
+Now, determine the result for: :]}#:</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-e483e127')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-e483e127">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;&lt;&#x27; = 0
+  &quot;&#x27;&quot; = 1
+  &#x27;]&#x27; = 2
+  &#x27;#&#x27; = 3
+  &#x27;)&#x27; = 4
+  &#x27;`&#x27; = 5
+  &#x27;&gt;&#x27; = 6
+  &#x27;|&#x27; = 7
+  &#x27;:&#x27; = 8
+
+Operator-to-operation mapping:
+  &#x27;{&#x27; = add
+  &#x27;}&#x27; = mul
+
+Verification on the examples:
+  )]}&gt;) = ]&gt;::: 42 * 64 = 2688
+  )&#x27;{)&lt; = :&#x27;: 41 + 40 = 81
+  `#{|&#x27; = &#x27;]): 53 + 71 = 124
+
+Apply to the query: :]}#:
+  &#x27;:&#x27;&#x27;]&#x27; = 82, &#x27;#&#x27;&#x27;:&#x27; = 38
+  Operator &#x27;}&#x27; is mul.
+  82 * 38 = 3116
+  Translate digits back to symbols: 3 -&gt; &#x27;#&#x27;, 1 -&gt; &quot;&#x27;&quot;, 1 -&gt; &quot;&#x27;&quot;, 6 -&gt; &#x27;&gt;&#x27;
+  Resulting string: #&#x27;&#x27;&gt;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-39" data-problem-id="9afe43b4">
+  <div class="card-header">
+    <span class="badge badge-id">9afe43b4</span>
+    <span class="badge badge-ans">answer: //(}</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#40 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-9afe43b4')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-9afe43b4">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+%)@%% = )]&lt;
+((!#} = &lt;^)/
+)%@)&lt; = ^)
+(^!&lt;) = //%^
+Now, determine the result for: %}!#&lt;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-9afe43b4')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-9afe43b4">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;]&#x27; = 0
+  &#x27;)&#x27; = 1
+  &#x27;}&#x27; = 2
+  &#x27;^&#x27; = 3
+  &#x27;/&#x27; = 4
+  &#x27;%&#x27; = 5
+  &#x27;&lt;&#x27; = 6
+  &#x27;(&#x27; = 7
+  &#x27;#&#x27; = 8
+
+Operator-to-operation mapping:
+  &#x27;!&#x27; = mul
+  &#x27;@&#x27; = add
+
+Verification on the examples:
+  %)@%% = )]&lt;: 51 + 55 = 106
+  ((!#} = &lt;^)/: 77 * 82 = 6314
+  )%@)&lt; = ^): 15 + 16 = 31
+  (^!&lt;) = //%^: 73 * 61 = 4453
+
+Apply to the query: %}!#&lt;
+  &#x27;%&#x27;&#x27;}&#x27; = 52, &#x27;#&#x27;&#x27;&lt;&#x27; = 86
+  Operator &#x27;!&#x27; is mul.
+  52 * 86 = 4472
+  Translate digits back to symbols: 4 -&gt; &#x27;/&#x27;, 4 -&gt; &#x27;/&#x27;, 7 -&gt; &#x27;(&#x27;, 2 -&gt; &#x27;}&#x27;
+  Resulting string: //(}</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-40" data-problem-id="9aa8dc92">
+  <div class="card-header">
+    <span class="badge badge-id">9aa8dc92</span>
+    <span class="badge badge-ans">answer: /#&lt;/</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#41 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-9aa8dc92')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-9aa8dc92">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+\|+&lt;# = \|&lt;#
+#:+#: = #:#:
+/@-{/ = -\&quot;
+Now, determine the result for: /#+&lt;/</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-9aa8dc92')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-9aa8dc92">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  \|+&lt;# = \|&lt;#: the output is the first two symbols followed by the last two (concat).
+  #:+#: = #:#:: the output is the first two symbols followed by the last two (concat).
+  /@-{/ = -\&quot;: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to /#+&lt;/: output = first two symbols then last two.
+Resulting string: /#&lt;/</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-41" data-problem-id="bc83b0a1">
+  <div class="card-header">
+    <span class="badge badge-id">bc83b0a1</span>
+    <span class="badge badge-ans">answer: (/&amp;{</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#42 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-bc83b0a1')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-bc83b0a1">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+!!*&gt;( = !!&gt;(
+&amp;{*!/ = &amp;{!/
+&amp;{*{) = &amp;{{)
+&amp;|?(&amp; = &amp;\{[
+&gt;)&quot;&amp;! = {/
+Now, determine the result for: (/*&amp;{</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-bc83b0a1')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-bc83b0a1">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  !!*&gt;( = !!&gt;(: the output is the first two symbols followed by the last two (concat).
+  &amp;{*!/ = &amp;{!/: the output is the first two symbols followed by the last two (concat).
+  &amp;{*{) = &amp;{{): the output is the first two symbols followed by the last two (concat).
+  &amp;|?(&amp; = &amp;\{[: arithmetic operation.
+  &gt;)&quot;&amp;! = {/: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to (/*&amp;{: output = first two symbols then last two.
+Resulting string: (/&amp;{</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-42" data-problem-id="dc0f5e5e">
+  <div class="card-header">
+    <span class="badge badge-id">dc0f5e5e</span>
+    <span class="badge badge-ans">answer: %%}#</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#43 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-dc0f5e5e')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-dc0f5e5e">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&lt;#+{\ = &lt;#{\
+&lt;&lt;*{&gt; = {!\^
+#&gt;*## = }}%%
+\{+!} = \{!}
+Now, determine the result for: %%+}#</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-dc0f5e5e')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-dc0f5e5e">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &lt;#+{\ = &lt;#{\: the output is the first two symbols followed by the last two (concat).
+  &lt;&lt;*{&gt; = {!\^: arithmetic operation.
+  #&gt;*## = }}%%: arithmetic operation.
+  \{+!} = \{!}: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to %%+}#: output = first two symbols then last two.
+Resulting string: %%}#</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-43" data-problem-id="9eccbafd">
+  <div class="card-header">
+    <span class="badge badge-id">9eccbafd</span>
+    <span class="badge badge-ans">answer: @&gt;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#44 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-9eccbafd')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-9eccbafd">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+|&#x27;-%&gt; = &#x27;!
+@&quot;-&#x27;} = `|
+%&gt;#&quot;} = |%
+`&amp;-@| = @!@
+Now, determine the result for: &quot;&gt;#&#x27;`</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-9eccbafd')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-9eccbafd">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;!&#x27; = 0
+  &#x27;@&#x27; = 1
+  &#x27;|&#x27; = 2
+  &#x27;%&#x27; = 3
+  &#x27;&gt;&#x27; = 4
+  &#x27;&quot;&#x27; = 5
+  &quot;&#x27;&quot; = 6
+  &#x27;}&#x27; = 7
+  &#x27;`&#x27; = 8
+  &#x27;&amp;&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;#&#x27; = abs_diff
+  &#x27;-&#x27; = add
+
+Verification on the examples:
+  |&#x27;-%&gt; = &#x27;!: 26 + 34 = 60
+  @&quot;-&#x27;} = `|: 15 + 67 = 82
+  %&gt;#&quot;} = |%: |34 - 57| = 23
+  `&amp;-@| = @!@: 89 + 12 = 101
+
+Apply to the query: &quot;&gt;#&#x27;`
+  &#x27;&quot;&#x27;&#x27;&gt;&#x27; = 54, &quot;&#x27;&quot;&#x27;`&#x27; = 68
+  Operator &#x27;#&#x27; is abs_diff.
+  |54 - 68| = 14
+  Translate digits back to symbols: 1 -&gt; &#x27;@&#x27;, 4 -&gt; &#x27;&gt;&#x27;
+  Resulting string: @&gt;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-44" data-problem-id="eac0e775">
+  <div class="card-header">
+    <span class="badge badge-id">eac0e775</span>
+    <span class="badge badge-ans">answer: &lt;@&lt;(</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#45 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-eac0e775')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-eac0e775">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+@@+)` = )`@@
+&lt;`-): = -|]
+^]*`/ = ^:|]
+Now, determine the result for: &lt;(+&lt;@</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-eac0e775')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-eac0e775">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  @@+)` = )`@@: the output is the last two symbols followed by the first two (rev_concat).
+  &lt;`-): = -|]: arithmetic operation.
+  ^]*`/ = ^:|]: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as rev_concat.
+Apply rev_concat to &lt;(+&lt;@: output = last two symbols then first two.
+Resulting string: &lt;@&lt;(</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-45" data-problem-id="39a1f5e9">
+  <div class="card-header">
+    <span class="badge badge-id">39a1f5e9</span>
+    <span class="badge badge-ans">answer: &lt;&quot;&gt;[</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#46 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-39a1f5e9')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-39a1f5e9">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&quot;\+&quot;% = &gt;[?
+&quot;\*!\ = !\&quot;\
+%[*&quot;$ = &quot;$%[
+Now, determine the result for: &gt;[*&lt;&quot;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-39a1f5e9')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-39a1f5e9">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &quot;\+&quot;% = &gt;[?: arithmetic operation.
+  &quot;\*!\ = !\&quot;\: the output is the last two symbols followed by the first two (rev_concat).
+  %[*&quot;$ = &quot;$%[: the output is the last two symbols followed by the first two (rev_concat).
+
+The question operator &#x27;*&#x27; acts as rev_concat.
+Apply rev_concat to &gt;[*&lt;&quot;: output = last two symbols then first two.
+Resulting string: &lt;&quot;&gt;[</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-46" data-problem-id="dea42835">
+  <div class="card-header">
+    <span class="badge badge-id">dea42835</span>
+    <span class="badge badge-ans">answer: [&#x27;[/</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#47 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-dea42835')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-dea42835">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&#x27;&#x27;-/&gt; = )
+/`*:[ = :[/`
+&gt;:*)$ = )$&gt;:
+:[*&#x27;/ = &#x27;/:[
+`$+&lt;[ = )&lt;
+Now, determine the result for: [/*[&#x27;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-dea42835')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-dea42835">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &#x27;&#x27;-/&gt; = ): arithmetic operation.
+  /`*:[ = :[/`: the output is the last two symbols followed by the first two (rev_concat).
+  &gt;:*)$ = )$&gt;:: the output is the last two symbols followed by the first two (rev_concat).
+  :[*&#x27;/ = &#x27;/:[: the output is the last two symbols followed by the first two (rev_concat).
+  `$+&lt;[ = )&lt;: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as rev_concat.
+Apply rev_concat to [/*[&#x27;: output = last two symbols then first two.
+Resulting string: [&#x27;[/</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-47" data-problem-id="e977d0b7">
+  <div class="card-header">
+    <span class="badge badge-id">e977d0b7</span>
+    <span class="badge badge-ans">answer: &amp;[/{</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#48 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-e977d0b7')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-e977d0b7">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+%:*:&#x27; = :${&#x27;
+$%-%[ = $|
+|&#x27;+/&#x27; = |&#x27;/&#x27;
+&#x27;{+&amp;: = &#x27;{&amp;:
+|&#x27;-:: = {&amp;
+Now, determine the result for: &amp;[+/{</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-e977d0b7')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-e977d0b7">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  %:*:&#x27; = :${&#x27;: arithmetic operation.
+  $%-%[ = $|: arithmetic operation.
+  |&#x27;+/&#x27; = |&#x27;/&#x27;: the output is the first two symbols followed by the last two (concat).
+  &#x27;{+&amp;: = &#x27;{&amp;:: the output is the first two symbols followed by the last two (concat).
+  |&#x27;-:: = {&amp;: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to &amp;[+/{: output = first two symbols then last two.
+Resulting string: &amp;[/{</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-48" data-problem-id="08f6216d">
+  <div class="card-header">
+    <span class="badge badge-id">08f6216d</span>
+    <span class="badge badge-ans">answer: |&gt;&gt;&gt;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#49 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-08f6216d')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-08f6216d">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&amp;!-][ = `
+]!*!| = !|`
+`{+&gt;] = &gt;]`{
+Now, determine the result for: &gt;&gt;+|&gt;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-08f6216d')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-08f6216d">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &amp;!-][ = `: arithmetic operation.
+  ]!*!| = !|`: arithmetic operation.
+  `{+&gt;] = &gt;]`{: the output is the last two symbols followed by the first two (rev_concat).
+
+The question operator &#x27;+&#x27; acts as rev_concat.
+Apply rev_concat to &gt;&gt;+|&gt;: output = last two symbols then first two.
+Resulting string: |&gt;&gt;&gt;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-49" data-problem-id="d7662688">
+  <div class="card-header">
+    <span class="badge badge-id">d7662688</span>
+    <span class="badge badge-ans">answer: ]&amp;]]</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#50 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-d7662688')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-d7662688">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&quot;@-:( = !(
+]\*&quot;% = &quot;%]\
+&quot;(+(] = (&amp;
+Now, determine the result for: ]]*]&amp;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-d7662688')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-d7662688">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &quot;@-:( = !(: arithmetic operation.
+  ]\*&quot;% = &quot;%]\: the output is the last two symbols followed by the first two (rev_concat).
+  &quot;(+(] = (&amp;: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as rev_concat.
+Apply rev_concat to ]]*]&amp;: output = last two symbols then first two.
+Resulting string: ]&amp;]]</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-50" data-problem-id="5bd9919c">
+  <div class="card-header">
+    <span class="badge badge-id">5bd9919c</span>
+    <span class="badge badge-ans">answer: ]&#x27;]`</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#51 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-5bd9919c')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-5bd9919c">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+/`|)` = {/]
+/]&lt;)] = /])]
+&#x27;`|{` = ]]
+Now, determine the result for: ]&#x27;&lt;]`</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-5bd9919c')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-5bd9919c">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  /`|)` = {/]: arithmetic operation.
+  /]&lt;)] = /])]: the output is the first two symbols followed by the last two (concat).
+  &#x27;`|{` = ]]: arithmetic operation.
+
+The question operator &#x27;&lt;&#x27; acts as concat.
+Apply concat to ]&#x27;&lt;]`: output = first two symbols then last two.
+Resulting string: ]&#x27;]`</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-51" data-problem-id="8e56a42e">
+  <div class="card-header">
+    <span class="badge badge-id">8e56a42e</span>
+    <span class="badge badge-ans">answer: %/&lt;&gt;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#52 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-8e56a42e')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-8e56a42e">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&lt;$@}\ = \%{
+{%[$} = {%$}
+&lt;$^&gt;&gt; = &quot;\
+Now, determine the result for: %/[&lt;&gt;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-8e56a42e')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-8e56a42e">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &lt;$@}\ = \%{: arithmetic operation.
+  {%[$} = {%$}: the output is the first two symbols followed by the last two (concat).
+  &lt;$^&gt;&gt; = &quot;\: arithmetic operation.
+
+The question operator &#x27;[&#x27; acts as concat.
+Apply concat to %/[&lt;&gt;: output = first two symbols then last two.
+Resulting string: %/&lt;&gt;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-52" data-problem-id="c934ffa1">
+  <div class="card-header">
+    <span class="badge badge-id">c934ffa1</span>
+    <span class="badge badge-ans">answer: ||</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#53 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-c934ffa1')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-c934ffa1">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&quot;#?)) = #|)&quot;
+#&amp;+\# = \!
+\&quot;@\$ = &amp;&quot;
+Now, determine the result for: #&quot;@&quot;#</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-c934ffa1')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-c934ffa1">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;$&#x27; = 0
+  &#x27;\\&#x27; = 1
+  &#x27;&amp;&#x27; = 2
+  &#x27;#&#x27; = 3
+  &#x27;&quot;&#x27; = 4
+  &#x27;|&#x27; = 7
+  &#x27;)&#x27; = 8
+  &#x27;!&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;+&#x27; = abs_diff
+  &#x27;?&#x27; = mul
+  &#x27;@&#x27; = add
+
+Verification on the examples:
+  &quot;#?)) = #|)&quot;: 43 * 88 = 3784
+  #&amp;+\# = \!: |32 - 13| = 19
+  \&quot;@\$ = &amp;&quot;: 14 + 10 = 24
+
+Apply to the query: #&quot;@&quot;#
+  &#x27;#&#x27;&#x27;&quot;&#x27; = 34, &#x27;&quot;&#x27;&#x27;#&#x27; = 43
+  Operator &#x27;@&#x27; is add.
+  34 + 43 = 77
+  Translate digits back to symbols: 7 -&gt; &#x27;|&#x27;, 7 -&gt; &#x27;|&#x27;
+  Resulting string: ||</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-53" data-problem-id="657bcae9">
+  <div class="card-header">
+    <span class="badge badge-id">657bcae9</span>
+    <span class="badge badge-ans">answer: &#x27;}[</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#54 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-657bcae9')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-657bcae9">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+[(#]( = &#x27;&quot;&amp;
+($^&quot;} = &gt;}$
+}}^&amp;| = (&gt;|}
+&#x27;|#[&#x27; = &amp;$
+&gt;(#([ = &#x27;$&gt;
+Now, determine the result for: &gt;|#&gt;}</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-657bcae9')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-657bcae9">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;$&#x27; = 0
+  &quot;&#x27;&quot; = 1
+  &#x27;&quot;&#x27; = 2
+  &#x27;(&#x27; = 3
+  &#x27;[&#x27; = 4
+  &#x27;}&#x27; = 5
+  &#x27;&amp;&#x27; = 6
+  &#x27;&gt;&#x27; = 7
+  &#x27;]&#x27; = 8
+  &#x27;|&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;#&#x27; = add
+  &#x27;^&#x27; = mul
+
+Verification on the examples:
+  [(#]( = &#x27;&quot;&amp;: 43 + 83 = 126
+  ($^&quot;} = &gt;}$: 30 * 25 = 750
+  }}^&amp;| = (&gt;|}: 55 * 69 = 3795
+  &#x27;|#[&#x27; = &amp;$: 19 + 41 = 60
+  &gt;(#([ = &#x27;$&gt;: 73 + 34 = 107
+
+Apply to the query: &gt;|#&gt;}
+  &#x27;&gt;&#x27;&#x27;|&#x27; = 79, &#x27;&gt;&#x27;&#x27;}&#x27; = 75
+  Operator &#x27;#&#x27; is add.
+  79 + 75 = 154
+  Translate digits back to symbols: 1 -&gt; &quot;&#x27;&quot;, 5 -&gt; &#x27;}&#x27;, 4 -&gt; &#x27;[&#x27;
+  Resulting string: &#x27;}[</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-54" data-problem-id="a85864a9">
+  <div class="card-header">
+    <span class="badge badge-id">a85864a9</span>
+    <span class="badge badge-ans">answer: (\}:</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#55 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-a85864a9')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-a85864a9">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+[}+[} = [}[}
+:)*}/ = :)}/
+)}-%` = -/[
+%\-:| = )\
+(%*%/ = (%%/
+Now, determine the result for: (\*}:</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-a85864a9')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-a85864a9">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  [}+[} = [}[}: the output is the first two symbols followed by the last two (concat).
+  :)*}/ = :)}/: the output is the first two symbols followed by the last two (concat).
+  )}-%` = -/[: arithmetic operation.
+  %\-:| = )\: arithmetic operation.
+  (%*%/ = (%%/: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to (\*}:: output = first two symbols then last two.
+Resulting string: (\}:</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-55" data-problem-id="0dcfd566">
+  <div class="card-header">
+    <span class="badge badge-id">0dcfd566</span>
+    <span class="badge badge-ans">answer: )@\{</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#56 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-0dcfd566')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-0dcfd566">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&quot;)+\` = &quot;)\`
+\`-#&quot; = ?(
+`{*(# = ?{){
+(?+@@ = (?@@
+Now, determine the result for: )@+\{</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-0dcfd566')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-0dcfd566">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &quot;)+\` = &quot;)\`: the output is the first two symbols followed by the last two (concat).
+  \`-#&quot; = ?(: arithmetic operation.
+  `{*(# = ?{){: arithmetic operation.
+  (?+@@ = (?@@: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to )@+\{: output = first two symbols then last two.
+Resulting string: )@\{</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-56" data-problem-id="26258d8a">
+  <div class="card-header">
+    <span class="badge badge-id">26258d8a</span>
+    <span class="badge badge-ans">answer: ^</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#57 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-26258d8a')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-26258d8a">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+@^*}? = \@$@
+}@*}^ = [$?
+\@*?( = [@(
+?@-}@ = }&amp;
+}$-$( = &lt;&lt;
+Now, determine the result for: ^&amp;-^^</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-26258d8a')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-26258d8a">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;&amp;&#x27; = 0
+  &#x27;\\&#x27; = 1
+  &#x27;}&#x27; = 2
+  &#x27;&lt;&#x27; = 3
+  &#x27;?&#x27; = 4
+  &#x27;$&#x27; = 5
+  &#x27;@&#x27; = 6
+  &#x27;[&#x27; = 7
+  &#x27;(&#x27; = 8
+  &#x27;^&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;*&#x27; = mul
+  &#x27;-&#x27; = abs_diff
+
+Verification on the examples:
+  @^*}? = \@$@: 69 * 24 = 1656
+  }@*}^ = [$?: 26 * 29 = 754
+  \@*?( = [@(: 16 * 48 = 768
+  ?@-}@ = }&amp;: |46 - 26| = 20
+  }$-$( = &lt;&lt;: |25 - 58| = 33
+
+Apply to the query: ^&amp;-^^
+  &#x27;^&#x27;&#x27;&amp;&#x27; = 90, &#x27;^&#x27;&#x27;^&#x27; = 99
+  Operator &#x27;-&#x27; is abs_diff.
+  |90 - 99| = 9
+  Translate digits back to symbols: 9 -&gt; &#x27;^&#x27;
+  Resulting string: ^</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-57" data-problem-id="64d775e5">
+  <div class="card-header">
+    <span class="badge badge-id">64d775e5</span>
+    <span class="badge badge-ans">answer: $&amp;)&lt;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#58 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-64d775e5')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-64d775e5">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&lt;$+@&lt; = @&lt;&lt;$
+$`*`% = /$%$
+&amp;$+&lt;% = &lt;%&amp;$
+&amp;`*/! = &amp;$@/
+Now, determine the result for: )&lt;+$&amp;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-64d775e5')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-64d775e5">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &lt;$+@&lt; = @&lt;&lt;$: the output is the last two symbols followed by the first two (rev_concat).
+  $`*`% = /$%$: arithmetic operation.
+  &amp;$+&lt;% = &lt;%&amp;$: the output is the last two symbols followed by the first two (rev_concat).
+  &amp;`*/! = &amp;$@/: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as rev_concat.
+Apply rev_concat to )&lt;+$&amp;: output = last two symbols then first two.
+Resulting string: $&amp;)&lt;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-58" data-problem-id="4de466bf">
+  <div class="card-header">
+    <span class="badge badge-id">4de466bf</span>
+    <span class="badge badge-ans">answer: ^[</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#59 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-4de466bf')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-4de466bf">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&lt;$&amp;^&gt; = @@&lt;
+&lt;^|&lt;@ = @$$^
+/[&amp;:/ = @::
+Now, determine the result for: @&gt;&amp;&lt;/</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-4de466bf')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-4de466bf">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;@&#x27; = 1
+  &#x27;:&#x27; = 4
+  &#x27;&lt;&#x27; = 4
+  &#x27;[&#x27; = 5
+  &#x27;&gt;&#x27; = 6
+  &#x27;^&#x27; = 6
+  &#x27;$&#x27; = 8
+  &#x27;/&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;&amp;&#x27; = add
+  &#x27;|&#x27; = mul
+
+Verification on the examples:
+  &lt;$&amp;^&gt; = @@&lt;: 48 + 66 = 114
+  &lt;^|&lt;@ = @$$^: 46 * 41 = 1886
+  /[&amp;:/ = @::: 95 + 49 = 144
+
+Apply to the query: @&gt;&amp;&lt;/
+  &#x27;@&#x27;&#x27;&gt;&#x27; = 16, &#x27;&lt;&#x27;&#x27;/&#x27; = 49
+  Operator &#x27;&amp;&#x27; is add.
+  16 + 49 = 65
+  Translate digits back to symbols: 6 -&gt; &#x27;^&#x27;, 5 -&gt; &#x27;[&#x27;
+  Resulting string: ^[</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-59" data-problem-id="57c845a6">
+  <div class="card-header">
+    <span class="badge badge-id">57c845a6</span>
+    <span class="badge badge-ans">answer: ]|</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#60 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-57c845a6')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-57c845a6">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+@?[&amp;&gt; = |&amp;
+&gt;][`? = `%\
+:?&#x27;@| = ?:@]
+`%&#x27;`% = `%%
+?&gt;-@&gt; = &amp;%
+Now, determine the result for: &gt;&gt;-@`</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-57c845a6')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-57c845a6">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;%&#x27; = 0
+  &#x27;`&#x27; = 1
+  &#x27;&amp;&#x27; = 2
+  &#x27;?&#x27; = 3
+  &#x27;]&#x27; = 4
+  &#x27;@&#x27; = 5
+  &#x27;:&#x27; = 6
+  &#x27;\\&#x27; = 7
+  &#x27;|&#x27; = 8
+  &#x27;&gt;&#x27; = 9
+
+Operator-to-operation mapping:
+  &quot;&#x27;&quot; = mul
+  &#x27;-&#x27; = abs_diff
+  &#x27;[&#x27; = add
+
+Verification on the examples:
+  @?[&amp;&gt; = |&amp;: 53 + 29 = 82
+  &gt;][`? = `%\: 94 + 13 = 107
+  :?&#x27;@| = ?:@]: 63 * 58 = 3654
+  `%&#x27;`% = `%%: 10 * 10 = 100
+  ?&gt;-@&gt; = &amp;%: |39 - 59| = 20
+
+Apply to the query: &gt;&gt;-@`
+  &#x27;&gt;&#x27;&#x27;&gt;&#x27; = 99, &#x27;@&#x27;&#x27;`&#x27; = 51
+  Operator &#x27;-&#x27; is abs_diff.
+  |99 - 51| = 48
+  Translate digits back to symbols: 4 -&gt; &#x27;]&#x27;, 8 -&gt; &#x27;|&#x27;
+  Resulting string: ]|</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-60" data-problem-id="9bfca34c">
+  <div class="card-header">
+    <span class="badge badge-id">9bfca34c</span>
+    <span class="badge badge-ans">answer: |&gt;`</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#61 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-9bfca34c')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-9bfca34c">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+]{+[&gt; = ||
+^[?&gt;` = &#x27;`|`
+&lt;(?&#x27;] = &#x27;^^`
+^^$&gt;&lt; = |`(
+Now, determine the result for: &lt;{$&gt;^</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-9bfca34c')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-9bfca34c">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;`&#x27; = 0
+  &#x27;|&#x27; = 1
+  &quot;&#x27;&quot; = 2
+  &#x27;&gt;&#x27; = 3
+  &#x27;{&#x27; = 4
+  &#x27;(&#x27; = 5
+  &#x27;^&#x27; = 6
+  &#x27;[&#x27; = 7
+  &#x27;]&#x27; = 8
+  &#x27;&lt;&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;$&#x27; = add
+  &#x27;+&#x27; = abs_diff
+  &#x27;?&#x27; = mul
+
+Verification on the examples:
+  ]{+[&gt; = ||: |84 - 73| = 11
+  ^[?&gt;` = &#x27;`|`: 67 * 30 = 2010
+  &lt;(?&#x27;] = &#x27;^^`: 95 * 28 = 2660
+  ^^$&gt;&lt; = |`(: 66 + 39 = 105
+
+Apply to the query: &lt;{$&gt;^
+  &#x27;&lt;&#x27;&#x27;{&#x27; = 94, &#x27;&gt;&#x27;&#x27;^&#x27; = 36
+  Operator &#x27;$&#x27; is add.
+  94 + 36 = 130
+  Translate digits back to symbols: 1 -&gt; &#x27;|&#x27;, 3 -&gt; &#x27;&gt;&#x27;, 0 -&gt; &#x27;`&#x27;
+  Resulting string: |&gt;`</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-61" data-problem-id="d63c1fb0">
+  <div class="card-header">
+    <span class="badge badge-id">d63c1fb0</span>
+    <span class="badge badge-ans">answer: &quot;|&quot;%</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#62 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-d63c1fb0')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-d63c1fb0">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&quot;&quot;+:| = &quot;&quot;:|
+?&lt;+&lt;&gt; = ?&lt;&lt;&gt;
+??-:&amp; = |?
+?&amp;+&gt;{ = ?&amp;&gt;{
+:|+%&amp; = :|%&amp;
+Now, determine the result for: &quot;|+&quot;%</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-d63c1fb0')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-d63c1fb0">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &quot;&quot;+:| = &quot;&quot;:|: the output is the first two symbols followed by the last two (concat).
+  ?&lt;+&lt;&gt; = ?&lt;&lt;&gt;: the output is the first two symbols followed by the last two (concat).
+  ??-:&amp; = |?: arithmetic operation.
+  ?&amp;+&gt;{ = ?&amp;&gt;{: the output is the first two symbols followed by the last two (concat).
+  :|+%&amp; = :|%&amp;: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to &quot;|+&quot;%: output = first two symbols then last two.
+Resulting string: &quot;|&quot;%</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-62" data-problem-id="d96607f8">
+  <div class="card-header">
+    <span class="badge badge-id">d96607f8</span>
+    <span class="badge badge-ans">answer: &quot;!&lt;}</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#63 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-d96607f8')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-d96607f8">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+!&lt;#&quot;? = ?&gt;
+&lt;?*{{ = &lt;?{{
+&#x27;!#^&quot; = &quot;?
+}{#&lt;&lt; = &quot;&lt;
+^!#&lt;! = ?:
+Now, determine the result for: &quot;!*&lt;}</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-d96607f8')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-d96607f8">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  !&lt;#&quot;? = ?&gt;: arithmetic operation.
+  &lt;?*{{ = &lt;?{{: the output is the first two symbols followed by the last two (concat).
+  &#x27;!#^&quot; = &quot;?: arithmetic operation.
+  }{#&lt;&lt; = &quot;&lt;: arithmetic operation.
+  ^!#&lt;! = ?:: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to &quot;!*&lt;}: output = first two symbols then last two.
+Resulting string: &quot;!&lt;}</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-63" data-problem-id="ec92f091">
+  <div class="card-header">
+    <span class="badge badge-id">ec92f091</span>
+    <span class="badge badge-ans">answer: &lt;/</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#64 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-ec92f091')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-ec92f091">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&gt;`+&gt;&gt; = `/
+$&gt;-`$ = &lt;
+&amp;]+&gt;` = !&gt;&gt;
+`$+$] = !\[
+]$+!&amp; = !\`
+Now, determine the result for: ![+/[</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-ec92f091')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-ec92f091">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;\\&#x27; = 0
+  &#x27;!&#x27; = 1
+  &#x27;&gt;&#x27; = 2
+  &#x27;[&#x27; = 3
+  &#x27;`&#x27; = 4
+  &#x27;$&#x27; = 5
+  &#x27;/&#x27; = 6
+  &#x27;&lt;&#x27; = 7
+  &#x27;]&#x27; = 8
+  &#x27;&amp;&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;+&#x27; = add
+  &#x27;-&#x27; = abs_diff
+
+Verification on the examples:
+  &gt;`+&gt;&gt; = `/: 24 + 22 = 46
+  $&gt;-`$ = &lt;: |52 - 45| = 7
+  &amp;]+&gt;` = !&gt;&gt;: 98 + 24 = 122
+  `$+$] = !\[: 45 + 58 = 103
+  ]$+!&amp; = !\`: 85 + 19 = 104
+
+Apply to the query: ![+/[
+  &#x27;!&#x27;&#x27;[&#x27; = 13, &#x27;/&#x27;&#x27;[&#x27; = 63
+  Operator &#x27;+&#x27; is add.
+  13 + 63 = 76
+  Translate digits back to symbols: 7 -&gt; &#x27;&lt;&#x27;, 6 -&gt; &#x27;/&#x27;
+  Resulting string: &lt;/</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-64" data-problem-id="bca230fd">
+  <div class="card-header">
+    <span class="badge badge-id">bca230fd</span>
+    <span class="badge badge-ans">answer: !&lt;[$</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#65 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-bca230fd')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-bca230fd">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+$&lt;:&lt;^ = :]{
+$&#x27;*\$ = \^&#x27;
+&#x27;)*]&#x27; = $)\)
+&lt;&#x27;*{$ = $^&#x27;&#x27;
+$$`]! = $$]!
+Now, determine the result for: !&lt;`[$</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-bca230fd')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-bca230fd">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  $&lt;:&lt;^ = :]{: arithmetic operation.
+  $&#x27;*\$ = \^&#x27;: arithmetic operation.
+  &#x27;)*]&#x27; = $)\): arithmetic operation.
+  &lt;&#x27;*{$ = $^&#x27;&#x27;: arithmetic operation.
+  $$`]! = $$]!: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;`&#x27; acts as concat.
+Apply concat to !&lt;`[$: output = first two symbols then last two.
+Resulting string: !&lt;[$</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-65" data-problem-id="af018681">
+  <div class="card-header">
+    <span class="badge badge-id">af018681</span>
+    <span class="badge badge-ans">answer: \${&quot;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#66 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-af018681')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-af018681">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+\$&gt;{^ = [/
+|&quot;![^ = |&quot;[^
+$|&gt;/} = {&quot;|
+Now, determine the result for: \$!{&quot;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-af018681')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-af018681">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  \$&gt;{^ = [/: arithmetic operation.
+  |&quot;![^ = |&quot;[^: the output is the first two symbols followed by the last two (concat).
+  $|&gt;/} = {&quot;|: arithmetic operation.
+
+The question operator &#x27;!&#x27; acts as concat.
+Apply concat to \$!{&quot;: output = first two symbols then last two.
+Resulting string: \${&quot;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-66" data-problem-id="81b6d789">
+  <div class="card-header">
+    <span class="badge badge-id">81b6d789</span>
+    <span class="badge badge-ans">answer: &amp;)@!</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#67 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-81b6d789')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-81b6d789">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&amp;@+$&quot; = &amp;$)
+:!*}! = }!:!
+#)-@: = -&quot;#
+&quot;!+!! = :#
+Now, determine the result for: @!*&amp;)</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-81b6d789')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-81b6d789">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &amp;@+$&quot; = &amp;$): arithmetic operation.
+  :!*}! = }!:!: the output is the last two symbols followed by the first two (rev_concat).
+  #)-@: = -&quot;#: arithmetic operation.
+  &quot;!+!! = :#: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as rev_concat.
+Apply rev_concat to @!*&amp;): output = last two symbols then first two.
+Resulting string: &amp;)@!</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-67" data-problem-id="2c017f70">
+  <div class="card-header">
+    <span class="badge badge-id">2c017f70</span>
+    <span class="badge badge-ans">answer: &gt;/%(</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#68 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-2c017f70')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-2c017f70">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+##+|( = ##|(
+/#+}/ = /#}/
+&gt;&gt;+/[ = &gt;&gt;/[
+}/+&gt;} = }/&gt;}
+Now, determine the result for: &gt;/+%(</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-2c017f70')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-2c017f70">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  ##+|( = ##|(: the output is the first two symbols followed by the last two (concat).
+  /#+}/ = /#}/: the output is the first two symbols followed by the last two (concat).
+  &gt;&gt;+/[ = &gt;&gt;/[: the output is the first two symbols followed by the last two (concat).
+  }/+&gt;} = }/&gt;}: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to &gt;/+%(: output = first two symbols then last two.
+Resulting string: &gt;/%(</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-68" data-problem-id="d6c03e21">
+  <div class="card-header">
+    <span class="badge badge-id">d6c03e21</span>
+    <span class="badge badge-ans">answer: &amp;(`#</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#69 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-d6c03e21')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-d6c03e21">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+`#+(&#x27; = `#(&#x27;
+&amp;&#x27;+&#x27;( = &amp;&#x27;&#x27;(
+$!+(! = $!(!
+&#x27;:*$$ = #[!&amp;
+Now, determine the result for: &amp;(+`#</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-d6c03e21')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-d6c03e21">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  `#+(&#x27; = `#(&#x27;: the output is the first two symbols followed by the last two (concat).
+  &amp;&#x27;+&#x27;( = &amp;&#x27;&#x27;(: the output is the first two symbols followed by the last two (concat).
+  $!+(! = $!(!: the output is the first two symbols followed by the last two (concat).
+  &#x27;:*$$ = #[!&amp;: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to &amp;(+`#: output = first two symbols then last two.
+Resulting string: &amp;(`#</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-69" data-problem-id="2f6531cb">
+  <div class="card-header">
+    <span class="badge badge-id">2f6531cb</span>
+    <span class="badge badge-ans">answer: @::&#x27;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#70 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-2f6531cb')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-2f6531cb">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+(&amp;&gt;{@ = &gt;^@
+({}$&#x27; = @:(
+&#x27;&amp;\&quot;&amp; = &#x27;&amp;&quot;&amp;
+Now, determine the result for: @:\:&#x27;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-2f6531cb')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-2f6531cb">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  (&amp;&gt;{@ = &gt;^@: arithmetic operation.
+  ({}$&#x27; = @:(: arithmetic operation.
+  &#x27;&amp;\&quot;&amp; = &#x27;&amp;&quot;&amp;: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;\\&#x27; acts as concat.
+Apply concat to @:\:&#x27;: output = first two symbols then last two.
+Resulting string: @::&#x27;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-70" data-problem-id="21b90d9f">
+  <div class="card-header">
+    <span class="badge badge-id">21b90d9f</span>
+    <span class="badge badge-ans">answer: ){?{</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#71 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-21b90d9f')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-21b90d9f">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+]{-]{ = :
+{&#x27;*/{ = {&#x27;/{
+{?-?&#x27; = ))
+/&amp;*)) = /&amp;))
+{/*&amp;/ = {/&amp;/
+Now, determine the result for: ){*?{</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-21b90d9f')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-21b90d9f">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  ]{-]{ = :: arithmetic operation.
+  {&#x27;*/{ = {&#x27;/{: the output is the first two symbols followed by the last two (concat).
+  {?-?&#x27; = )): arithmetic operation.
+  /&amp;*)) = /&amp;)): the output is the first two symbols followed by the last two (concat).
+  {/*&amp;/ = {/&amp;/: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to ){*?{: output = first two symbols then last two.
+Resulting string: ){?{</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-71" data-problem-id="60ed3f31">
+  <div class="card-header">
+    <span class="badge badge-id">60ed3f31</span>
+    <span class="badge badge-ans">answer: @%:\</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#72 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-60ed3f31')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-60ed3f31">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+:}-^} = :&lt;
+#(+&gt;# = :@:
+#&gt;*&gt;} = #&gt;&gt;}
+Now, determine the result for: @%*:\</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-60ed3f31')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-60ed3f31">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  :}-^} = :&lt;: arithmetic operation.
+  #(+&gt;# = :@:: arithmetic operation.
+  #&gt;*&gt;} = #&gt;&gt;}: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to @%*:\: output = first two symbols then last two.
+Resulting string: @%:\</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-72" data-problem-id="b50cf853">
+  <div class="card-header">
+    <span class="badge badge-id">b50cf853</span>
+    <span class="badge badge-ans">answer: |?&quot;}</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#73 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-b50cf853')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-b50cf853">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&gt;&gt;*&amp;( = &gt;&gt;&amp;(
+{{-?( = -|
+\&gt;*&amp;&amp; = \&gt;&amp;&amp;
+&gt;|+?&quot; = &amp;{&quot;
+Now, determine the result for: |?*&quot;}</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-b50cf853')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-b50cf853">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &gt;&gt;*&amp;( = &gt;&gt;&amp;(: the output is the first two symbols followed by the last two (concat).
+  {{-?( = -|: arithmetic operation.
+  \&gt;*&amp;&amp; = \&gt;&amp;&amp;: the output is the first two symbols followed by the last two (concat).
+  &gt;|+?&quot; = &amp;{&quot;: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to |?*&quot;}: output = first two symbols then last two.
+Resulting string: |?&quot;}</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-73" data-problem-id="b1b10e83">
+  <div class="card-header">
+    <span class="badge badge-id">b1b10e83</span>
+    <span class="badge badge-ans">answer: |&quot;#$</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#74 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-b1b10e83')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-b1b10e83">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&quot;\+#| = &quot;\#|
+#!+#\ = #!#\
+#&quot;*#&quot; = #){|
+$\*)&quot; = ${$#
+)\+`# = )\`#
+Now, determine the result for: |&quot;+#$</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-b1b10e83')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-b1b10e83">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &quot;\+#| = &quot;\#|: the output is the first two symbols followed by the last two (concat).
+  #!+#\ = #!#\: the output is the first two symbols followed by the last two (concat).
+  #&quot;*#&quot; = #){|: arithmetic operation.
+  $\*)&quot; = ${$#: arithmetic operation.
+  )\+`# = )\`#: the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to |&quot;+#$: output = first two symbols then last two.
+Resulting string: |&quot;#$</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-74" data-problem-id="02b8d816">
+  <div class="card-header">
+    <span class="badge badge-id">02b8d816</span>
+    <span class="badge badge-ans">answer: &gt;$$&gt;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#75 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-02b8d816')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-02b8d816">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+`$+%/ = `$%/
+!$*&quot;% = \\!&quot;
+%`-\[ = -`&gt;
+Now, determine the result for: &gt;$+$&gt;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-02b8d816')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-02b8d816">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  `$+%/ = `$%/: the output is the first two symbols followed by the last two (concat).
+  !$*&quot;% = \\!&quot;: arithmetic operation.
+  %`-\[ = -`&gt;: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to &gt;$+$&gt;: output = first two symbols then last two.
+Resulting string: &gt;$$&gt;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-75" data-problem-id="34b4cf96">
+  <div class="card-header">
+    <span class="badge badge-id">34b4cf96</span>
+    <span class="badge badge-ans">answer: &quot;&quot;^^</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#76 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-34b4cf96')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-34b4cf96">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+}^*}) = ^[|
+%}+|) = %}|)
+&gt;&quot;-}&#x27; = }|
+)&#x27;+)[ = )&#x27;)[
+)&#x27;*|[ = )^&quot;
+Now, determine the result for: &quot;&quot;+^^</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-34b4cf96')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-34b4cf96">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  }^*}) = ^[|: arithmetic operation.
+  %}+|) = %}|): the output is the first two symbols followed by the last two (concat).
+  &gt;&quot;-}&#x27; = }|: arithmetic operation.
+  )&#x27;+)[ = )&#x27;)[: the output is the first two symbols followed by the last two (concat).
+  )&#x27;*|[ = )^&quot;: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to &quot;&quot;+^^: output = first two symbols then last two.
+Resulting string: &quot;&quot;^^</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-76" data-problem-id="23b0eb54">
+  <div class="card-header">
+    <span class="badge badge-id">23b0eb54</span>
+    <span class="badge badge-ans">answer: ]/:)</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#77 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-23b0eb54')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-23b0eb54">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+](*/| = ](/|
+(|-]} = ))
+\(-|| = -:/
+Now, determine the result for: ]/*:)</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-23b0eb54')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-23b0eb54">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  ](*/| = ](/|: the output is the first two symbols followed by the last two (concat).
+  (|-]} = )): arithmetic operation.
+  \(-|| = -:/: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to ]/*:): output = first two symbols then last two.
+Resulting string: ]/:)</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-77" data-problem-id="99d6a3b5">
+  <div class="card-header">
+    <span class="badge badge-id">99d6a3b5</span>
+    <span class="badge badge-ans">answer: ?()&lt;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#78 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-99d6a3b5')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-99d6a3b5">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+#[%[&lt; = #{^&lt;
+[)%![ = !)?(
+))%?? = [(`
+)#%`? = {([&lt;
+Now, determine the result for: (&lt;%))</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-99d6a3b5')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-99d6a3b5">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;&lt;&#x27; = 0
+  &#x27;^&#x27; = 1
+  &#x27;?&#x27; = 2
+  &#x27;{&#x27; = 3
+  &#x27;)&#x27; = 4
+  &#x27;#&#x27; = 5
+  &#x27;(&#x27; = 6
+  &#x27;!&#x27; = 7
+  &#x27;`&#x27; = 8
+  &#x27;[&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;%&#x27; = mul
+
+Verification on the examples:
+  #[%[&lt; = #{^&lt;: 59 * 90 = 5310
+  [)%![ = !)?(: 94 * 79 = 7426
+  ))%?? = [(`: 44 * 22 = 968
+  )#%`? = {([&lt;: 45 * 82 = 3690
+
+Apply to the query: (&lt;%))
+  &#x27;(&#x27;&#x27;&lt;&#x27; = 60, &#x27;)&#x27;&#x27;)&#x27; = 44
+  Operator &#x27;%&#x27; is mul.
+  60 * 44 = 2640
+  Translate digits back to symbols: 2 -&gt; &#x27;?&#x27;, 6 -&gt; &#x27;(&#x27;, 4 -&gt; &#x27;)&#x27;, 0 -&gt; &#x27;&lt;&#x27;
+  Resulting string: ?()&lt;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-78" data-problem-id="8dac3984">
+  <div class="card-header">
+    <span class="badge badge-id">8dac3984</span>
+    <span class="badge badge-ans">answer: :!:|</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#79 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-8dac3984')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-8dac3984">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&gt;&amp;-|&amp; = -#&amp;
+&gt;|*!&gt; = &gt;|!&gt;
+|&gt;+%! = &gt;/%
+!%+[% = :@
+Now, determine the result for: :!*:|</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-8dac3984')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-8dac3984">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &gt;&amp;-|&amp; = -#&amp;: arithmetic operation.
+  &gt;|*!&gt; = &gt;|!&gt;: the output is the first two symbols followed by the last two (concat).
+  |&gt;+%! = &gt;/%: arithmetic operation.
+  !%+[% = :@: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to :!*:|: output = first two symbols then last two.
+Resulting string: :!:|</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-79" data-problem-id="c32e1c7b">
+  <div class="card-header">
+    <span class="badge badge-id">c32e1c7b</span>
+    <span class="badge badge-ans">answer: [$[</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#80 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-c32e1c7b')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-c32e1c7b">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+\[%&amp;$ = &amp;}&quot;$
+\`|&#x27;: = [[`
+`\%\&amp; = `&amp;&#x27;&quot;
+&#x27;/|$} = [:$
+Now, determine the result for: \&amp;|$`</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-c32e1c7b')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-c32e1c7b">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;:&#x27; = 0
+  &#x27;[&#x27; = 1
+  &quot;&#x27;&quot; = 2
+  &#x27;}&#x27; = 3
+  &#x27;&amp;&#x27; = 4
+  &#x27;/&#x27; = 5
+  &#x27;&quot;&#x27; = 6
+  &#x27;`&#x27; = 7
+  &#x27;$&#x27; = 8
+  &#x27;\\&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;%&#x27; = mul
+  &#x27;|&#x27; = add
+
+Verification on the examples:
+  \[%&amp;$ = &amp;}&quot;$: 91 * 48 = 4368
+  \`|&#x27;: = [[`: 97 + 20 = 117
+  `\%\&amp; = `&amp;&#x27;&quot;: 79 * 94 = 7426
+  &#x27;/|$} = [:$: 25 + 83 = 108
+
+Apply to the query: \&amp;|$`
+  &#x27;\\&#x27;&#x27;&amp;&#x27; = 94, &#x27;$&#x27;&#x27;`&#x27; = 87
+  Operator &#x27;|&#x27; is add.
+  94 + 87 = 181
+  Translate digits back to symbols: 1 -&gt; &#x27;[&#x27;, 8 -&gt; &#x27;$&#x27;, 1 -&gt; &#x27;[&#x27;
+  Resulting string: [$[</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-80" data-problem-id="1c7a0091">
+  <div class="card-header">
+    <span class="badge badge-id">1c7a0091</span>
+    <span class="badge badge-ans">answer: )`&lt;@</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#81 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-1c7a0091')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-1c7a0091">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+?@#?) = ?@?)
+??#?( = ???(
+!$*`? = ](?
+`)/?` = ?|
+|$#|) = |$|)
+Now, determine the result for: )`#&lt;@</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-1c7a0091')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-1c7a0091">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  ?@#?) = ?@?): the output is the first two symbols followed by the last two (concat).
+  ??#?( = ???(: the output is the first two symbols followed by the last two (concat).
+  !$*`? = ](?: arithmetic operation.
+  `)/?` = ?|: arithmetic operation.
+  |$#|) = |$|): the output is the first two symbols followed by the last two (concat).
+
+The question operator &#x27;#&#x27; acts as concat.
+Apply concat to )`#&lt;@: output = first two symbols then last two.
+Resulting string: )`&lt;@</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-81" data-problem-id="1d10ccaf">
+  <div class="card-header">
+    <span class="badge badge-id">1d10ccaf</span>
+    <span class="badge badge-ans">answer: &lt;({&amp;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#82 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-1d10ccaf')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-1d10ccaf">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+[!*`| = [!`|
+&#x27;&lt;-{( = !&#x27;
+!!-?? = [[
+Now, determine the result for: &lt;(*{&amp;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-1d10ccaf')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-1d10ccaf">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  [!*`| = [!`|: the output is the first two symbols followed by the last two (concat).
+  &#x27;&lt;-{( = !&#x27;: arithmetic operation.
+  !!-?? = [[: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to &lt;(*{&amp;: output = first two symbols then last two.
+Resulting string: &lt;({&amp;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-82" data-problem-id="0133bcec">
+  <div class="card-header">
+    <span class="badge badge-id">0133bcec</span>
+    <span class="badge badge-ans">answer: \([#</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#83 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-0133bcec')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-0133bcec">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+%|*&quot;| = %|&quot;|
+\(*[^ = \([^
+(%+[@ = (%[@
+|[*([ = |[([
+[^-[( = -^
+Now, determine the result for: \(*[#</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-0133bcec')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-0133bcec">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  %|*&quot;| = %|&quot;|: the output is the first two symbols followed by the last two (concat).
+  \(*[^ = \([^: the output is the first two symbols followed by the last two (concat).
+  (%+[@ = (%[@: the output is the first two symbols followed by the last two (concat).
+  |[*([ = |[([: the output is the first two symbols followed by the last two (concat).
+  [^-[( = -^: arithmetic operation.
+
+The question operator &#x27;*&#x27; acts as concat.
+Apply concat to \(*[#: output = first two symbols then last two.
+Resulting string: \([#</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-83" data-problem-id="3185fdeb">
+  <div class="card-header">
+    <span class="badge badge-id">3185fdeb</span>
+    <span class="badge badge-ans">answer: (%|[</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#84 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-3185fdeb')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-3185fdeb">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&quot;#+@[ = &quot;#@[
+[&gt;*|( = @:&lt;
+&lt;(-[: = |:
+|#-&lt;&quot; = (&lt;
+@@*(&gt; = (&quot;|:
+Now, determine the result for: (%+|[</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-3185fdeb')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-3185fdeb">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &quot;#+@[ = &quot;#@[: the output is the first two symbols followed by the last two (concat).
+  [&gt;*|( = @:&lt;: arithmetic operation.
+  &lt;(-[: = |:: arithmetic operation.
+  |#-&lt;&quot; = (&lt;: arithmetic operation.
+  @@*(&gt; = (&quot;|:: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to (%+|[: output = first two symbols then last two.
+Resulting string: (%|[</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-84" data-problem-id="dac75343">
+  <div class="card-header">
+    <span class="badge badge-id">dac75343</span>
+    <span class="badge badge-ans">answer: #@@`</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#85 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-dac75343')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-dac75343">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+%|*`# = (||{
+%%+{` = %%{`
+@|*{( = &#x27;&#x27;[#
+%@-() = |@
+%`-@% = -`#
+Now, determine the result for: #@+@`</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-dac75343')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-dac75343">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  %|*`# = (||{: arithmetic operation.
+  %%+{` = %%{`: the output is the first two symbols followed by the last two (concat).
+  @|*{( = &#x27;&#x27;[#: arithmetic operation.
+  %@-() = |@: arithmetic operation.
+  %`-@% = -`#: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to #@+@`: output = first two symbols then last two.
+Resulting string: #@@`</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-85" data-problem-id="e585410a">
+  <div class="card-header">
+    <span class="badge badge-id">e585410a</span>
+    <span class="badge badge-ans">answer: $&quot;!@</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#86 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-e585410a')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-e585410a">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&quot;@+@! = &quot;@@!
+/@*:} = :$}$
+$/-]] = -)!
+@:-}# = -:/
+Now, determine the result for: $&quot;+!@</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-e585410a')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-e585410a">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &quot;@+@! = &quot;@@!: the output is the first two symbols followed by the last two (concat).
+  /@*:} = :$}$: arithmetic operation.
+  $/-]] = -)!: arithmetic operation.
+  @:-}# = -:/: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to $&quot;+!@: output = first two symbols then last two.
+Resulting string: $&quot;!@</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-86" data-problem-id="d350828e">
+  <div class="card-header">
+    <span class="badge badge-id">d350828e</span>
+    <span class="badge badge-ans">answer: }!||</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#87 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-d350828e')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-d350828e">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+?&gt;#&quot;&gt; = {|
+/|#(| = &quot;|
+&lt;&quot;[}! = ((&gt;
+}&quot;:&gt;/ = !//|
+!&gt;[&quot;| = &gt;&gt;
+Now, determine the result for: /{:&quot;|</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-d350828e')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-d350828e">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;|&#x27; = 0
+  &#x27;(&#x27; = 1
+  &#x27;!&#x27; = 2
+  &#x27;}&#x27; = 3
+  &#x27;{&#x27; = 4
+  &#x27;&quot;&#x27; = 5
+  &#x27;/&#x27; = 6
+  &#x27;&gt;&#x27; = 7
+  &#x27;&lt;&#x27; = 8
+  &#x27;?&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;#&#x27; = abs_diff
+  &#x27;:&#x27; = mul
+  &#x27;[&#x27; = add
+
+Verification on the examples:
+  ?&gt;#&quot;&gt; = {|: |97 - 57| = 40
+  /|#(| = &quot;|: |60 - 10| = 50
+  &lt;&quot;[}! = ((&gt;: 85 + 32 = 117
+  }&quot;:&gt;/ = !//|: 35 * 76 = 2660
+  !&gt;[&quot;| = &gt;&gt;: 27 + 50 = 77
+
+Apply to the query: /{:&quot;|
+  &#x27;/&#x27;&#x27;{&#x27; = 64, &#x27;&quot;&#x27;&#x27;|&#x27; = 50
+  Operator &#x27;:&#x27; is mul.
+  64 * 50 = 3200
+  Translate digits back to symbols: 3 -&gt; &#x27;}&#x27;, 2 -&gt; &#x27;!&#x27;, 0 -&gt; &#x27;|&#x27;, 0 -&gt; &#x27;|&#x27;
+  Resulting string: }!||</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-87" data-problem-id="823c8278">
+  <div class="card-header">
+    <span class="badge badge-id">823c8278</span>
+    <span class="badge badge-ans">answer: |:</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#88 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-823c8278')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-823c8278">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+`:@/: = `{!!
+!{&lt;]\ = ||
+&gt;]&lt;`/ = `!
+\]@\! = !^]`
+Now, determine the result for: ::&lt;{^</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-823c8278')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-823c8278">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;^&#x27; = 0
+  &#x27;|&#x27; = 1
+  &#x27;`&#x27; = 2
+  &#x27;]&#x27; = 3
+  &#x27;!&#x27; = 4
+  &#x27;&gt;&#x27; = 5
+  &#x27;\\&#x27; = 6
+  &#x27;{&#x27; = 7
+  &#x27;:&#x27; = 8
+  &#x27;/&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;&lt;&#x27; = abs_diff
+  &#x27;@&#x27; = mul
+
+Verification on the examples:
+  `:@/: = `{!!: 28 * 98 = 2744
+  !{&lt;]\ = ||: |47 - 36| = 11
+  &gt;]&lt;`/ = `!: |53 - 29| = 24
+  \]@\! = !^]`: 63 * 64 = 4032
+
+Apply to the query: ::&lt;{^
+  &#x27;:&#x27;&#x27;:&#x27; = 88, &#x27;{&#x27;&#x27;^&#x27; = 70
+  Operator &#x27;&lt;&#x27; is abs_diff.
+  |88 - 70| = 18
+  Translate digits back to symbols: 1 -&gt; &#x27;|&#x27;, 8 -&gt; &#x27;:&#x27;
+  Resulting string: |:</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-88" data-problem-id="6897f05e">
+  <div class="card-header">
+    <span class="badge badge-id">6897f05e</span>
+    <span class="badge badge-ans">answer: :%::</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#89 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-6897f05e')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-6897f05e">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&gt;\-\/ = &quot;\
+:/-/&quot; = :&gt;
+%\+%! = %\%!
+:&quot;*?% = :::&quot;
+Now, determine the result for: :%+::</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-6897f05e')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-6897f05e">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &gt;\-\/ = &quot;\: arithmetic operation.
+  :/-/&quot; = :&gt;: arithmetic operation.
+  %\+%! = %\%!: the output is the first two symbols followed by the last two (concat).
+  :&quot;*?% = :::&quot;: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to :%+::: output = first two symbols then last two.
+Resulting string: :%::</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-89" data-problem-id="96115336">
+  <div class="card-header">
+    <span class="badge badge-id">96115336</span>
+    <span class="badge badge-ans">answer: @!&lt;&lt;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#90 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-96115336')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-96115336">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&gt;[{#^ = &gt;&lt;[}
+}@{&amp;@ = !}&amp;&amp;
+&amp;@|&gt;^ = !&lt;!
+@#|?! = #^
+Now, determine the result for: &amp;@{&gt;&lt;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-96115336')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-96115336">We need to decode the transformation rule from the examples.
+Each symbol represents a digit 0-9.
+The operator in position 3 represents one of: add, abs_diff, mul, concat, rev_concat.
+I will put my final answer inside \boxed{}.
+
+After searching, the following assignment is consistent with all examples:
+Symbol-to-digit mapping:
+  &#x27;&lt;&#x27; = 0
+  &#x27;!&#x27; = 1
+  &#x27;@&#x27; = 2
+  &#x27;}&#x27; = 3
+  &#x27;&amp;&#x27; = 4
+  &#x27;&gt;&#x27; = 5
+  &#x27;?&#x27; = 6
+  &#x27;[&#x27; = 7
+  &#x27;#&#x27; = 8
+  &#x27;^&#x27; = 9
+
+Operator-to-operation mapping:
+  &#x27;{&#x27; = mul
+  &#x27;|&#x27; = add
+
+Verification on the examples:
+  &gt;[{#^ = &gt;&lt;[}: 57 * 89 = 5073
+  }@{&amp;@ = !}&amp;&amp;: 32 * 42 = 1344
+  &amp;@|&gt;^ = !&lt;!: 42 + 59 = 101
+  @#|?! = #^: 28 + 61 = 89
+
+Apply to the query: &amp;@{&gt;&lt;
+  &#x27;&amp;&#x27;&#x27;@&#x27; = 42, &#x27;&gt;&#x27;&#x27;&lt;&#x27; = 50
+  Operator &#x27;{&#x27; is mul.
+  42 * 50 = 2100
+  Translate digits back to symbols: 2 -&gt; &#x27;@&#x27;, 1 -&gt; &#x27;!&#x27;, 0 -&gt; &#x27;&lt;&#x27;, 0 -&gt; &#x27;&lt;&#x27;
+  Resulting string: @!&lt;&lt;</div>
+  </div>
+</div>
+
+<div class="card  hidden" id="card-90" data-problem-id="9cc02bc1">
+  <div class="card-header">
+    <span class="badge badge-id">9cc02bc1</span>
+    <span class="badge badge-ans">answer: :#:&#x27;</span>
+    <span class="badge badge-type">cryptarithm_deduce</span>
+    <span class="badge badge-num">#91 / 91</span>
+  </div>
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Prompt</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'prompt-9cc02bc1')">Copy</button>
+    </div>
+    <div class="prompt-box" id="prompt-9cc02bc1">In Alice&#x27;s Wonderland, a secret set of transformation rules is applied to equations. Below are a few examples:
+&amp;|+]&#x27; = &amp;|]&#x27;
+^#+&#x27;` = ^#&#x27;`
+&#x27;#-^&#x27; = -&#x27;#
+{^+&gt;{ = {^&gt;{
+|]-&amp;` = -^&amp;
+Now, determine the result for: :#+:&#x27;</div>
+  </div>
+  <hr class="div">
+  <div class="section">
+    <div class="section-head">
+      <div class="section-label">Generated CoT (solver-verified)</div>
+      <button type="button" class="copy-btn" onclick="copyPane(this, 'cot-9cc02bc1')">Copy</button>
+    </div>
+    <div class="cot-box" id="cot-9cc02bc1">We need to decode the transformation rule from the examples.
+I will put my final answer inside \boxed{}.
+
+Observing the examples:
+  &amp;|+]&#x27; = &amp;|]&#x27;: the output is the first two symbols followed by the last two (concat).
+  ^#+&#x27;` = ^#&#x27;`: the output is the first two symbols followed by the last two (concat).
+  &#x27;#-^&#x27; = -&#x27;#: arithmetic operation.
+  {^+&gt;{ = {^&gt;{: the output is the first two symbols followed by the last two (concat).
+  |]-&amp;` = -^&amp;: arithmetic operation.
+
+The question operator &#x27;+&#x27; acts as concat.
+Apply concat to :#+:&#x27;: output = first two symbols then last two.
+Resulting string: :#:&#x27;</div>
+  </div>
+</div>
+</div>
+
+<div class="source">
+  Generated from <code>error_analysis/88_0_v3/output_problem_ids_matched_v2.csv</code> · 91 unique solver-verified cryptarithm_deduce puzzles
+</div>
+
+<script>
+const cards = Array.from(document.querySelectorAll('.card'));
+let pos = 0;
+
+function showPos() {
+  cards.forEach(c => c.classList.add('hidden'));
+  cards[pos].classList.remove('hidden');
+  document.getElementById('ctr').textContent = (pos+1) + ' / ' + cards.length;
+  document.getElementById('gi').value = pos+1;
+}
+
+function prev() { if (pos > 0) pos--; showPos(); }
+function next() { if (pos < cards.length-1) pos++; showPos(); }
+function goTo(v) { pos = Math.max(0, Math.min(cards.length-1, parseInt(v)-1)); showPos(); }
+
+function doSearch() {
+  const q = document.getElementById('si').value.trim().toLowerCase();
+  if (!q) return;
+  const idx = cards.findIndex(c => c.dataset.problemId && c.dataset.problemId.toLowerCase().startsWith(q));
+  if (idx === -1) { document.getElementById('nf').style.display = 'inline'; return; }
+  pos = idx;
+  showPos();
+}
+
+function copyPane(btn, id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+showPos();
+</script>
+</body>
+</html>
