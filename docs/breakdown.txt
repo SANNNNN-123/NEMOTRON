@@ -504,4 +504,26 @@ Note: Reducing 3x→2x made things worse (0.85→0.83). cryptarithm_deduce dropp
 │ Exp 10     │ v15.csv       │ 233.8 min │ v13 core + crypto_deduce 273(3x) + crypto_guess 154 + eq_guess 126 (orig)    │ 0.82  │ 87.6% (148/169)   │
 ├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
 │ Exp 11     │ v16.csv       │ 221.8 min │ Exp9 baseline (v14_reduce) with crypto_deduce reduced 3x→2x (182 rows, 2.5%) │ 0.83  │ 87.6% (148/169)   │
+├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
+│ Exp 12     │ v17.csv       │ TBD       │ Exp9 + 4 solver-verified crypto_guess × 3x = 12 new rows (23 total, 0.3%)    │ TBD   │ TBD               │
 └────────────┴───────────────┴───────────┴──────────────────────────────────────────────────────────────────────────────┴───────┴───────────────────┘
+
+─────────────────────────────────────────────────────────────────────────────────────
+Experiment 12 — problem_ids_matched_v17.csv
+─────────────────────────────────────────────────────────────────────────────────────
+Dataset : error_analysis/88_0_v3/problem_ids_matched_v17.csv  |  Rows: 7,260
+  cryptarithm_guess:    23 — 11 (v13 base) + 4 solver-verified × 3x = 12 new rows
+    Source: output_problem_ids_matched_v2_new.csv (4 unique verified, was 0 before)
+    Motivation: cryptarithm_guess has been 0% val across all experiments.
+    4 new solver-verified rows from updated notebook — testing if any signal helps.
+  cryptarithm_deduce:  273 — unchanged from Exp 9 (91 × 3x)
+  gravity:           1,597 — unchanged from Exp 9
+  bit_manipulation:  1,590 — unchanged from Exp 9
+  cipher:            1,576 — unchanged from Exp 9
+  unit_conversion:     990 — unchanged from Exp 9
+  numeral:             650 — unchanged from Exp 9
+  equation_numeric_deduce: 540 — unchanged from Exp 9
+  equation_numeric_guess:   21 — unchanged from Exp 9
+
+Training log: TBD
+Validation:    TBD
