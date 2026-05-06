@@ -2,9 +2,14 @@
 name: Deploy static content to Pages
 
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
+    inputs:
+      enabled:
+        description: 'Disabled — repo is private'
+        required: false
+        default: 'false'
+  # push:
+  #   branches: ["main"]
 
 permissions:
   contents: read
