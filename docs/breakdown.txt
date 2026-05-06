@@ -505,7 +505,7 @@ Note: Reducing 3x→2x made things worse (0.85→0.83). cryptarithm_deduce dropp
 ├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
 │ Exp 11     │ v16.csv       │ 221.8 min │ Exp9 baseline (v14_reduce) with crypto_deduce reduced 3x→2x (182 rows, 2.5%) │ 0.83  │ 87.6% (148/169)   │
 ├────────────┼───────────────┼───────────┼──────────────────────────────────────────────────────────────────────────────┼───────┼───────────────────┤
-│ Exp 12     │ v17.csv       │ TBD       │ Exp9 + 4 solver-verified crypto_guess × 3x = 12 new rows (23 total, 0.3%)    │ TBD   │ TBD               │
+│ Exp 12     │ v17.csv       │ 224.7 min │ Exp9 + 4 solver-verified crypto_guess × 3x = 12 new rows (23 total, 0.3%)    │ 0.84  │ 86.4% (146/169)   │
 └────────────┴───────────────┴───────────┴──────────────────────────────────────────────────────────────────────────────┴───────┴───────────────────┘
 
 ─────────────────────────────────────────────────────────────────────────────────────
@@ -525,5 +525,21 @@ Dataset : error_analysis/88_0_v3/problem_ids_matched_v17.csv  |  Rows: 7,260
   equation_numeric_deduce: 540 — unchanged from Exp 9
   equation_numeric_guess:   21 — unchanged from Exp 9
 
-Training log: TBD
-Validation:    TBD
+Training log: Steps 227/Ep1 | 224.7 min | VRAM 90.53GB (94.3%) | Loss 6.43→0.73
+
+Validation:
+                         correct  total weightage percentage contribution
+  bit_manipulation           146    169     17.8%      86.4%        15.4%
+  cipher                     159    162     17.1%      98.1%        16.7%
+  cryptarithm_deduce           5     71      7.5%       7.0%         0.5%
+  cryptarithm_guess            0     14      1.5%       0.0%         0.0%
+  equation_numeric_deduce     41     48      5.1%      85.4%         4.3%
+  equation_numeric_guess       0      7      0.7%       0.0%         0.0%
+  gravity                    158    159     16.7%      99.4%        16.6%
+  numeral                    149    149     15.7%     100.0%        15.7%
+  unit_conversion            171    171     18.0%     100.0%        18.0%
+  TOTAL                      829    950    100.0%      87.3%   score 0.84 (resubmit)
+
+Note: Local val shows 0.83 but resubmit scored 0.84. cryptarithm_guess still 0%
+  despite 4 new solver-verified rows — 12 rows not enough signal. Exp 9 (0.85)
+  still best. bit_manipulation slight drop to 86.4% vs Exp 9's 84.6%.
