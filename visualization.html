@@ -347,6 +347,11 @@
             padding-bottom: 16px;
             border-bottom: 1px solid #e8e8e8;
         }
+        .view-tabs-wrap[hidden],
+        #cotBrowse[hidden],
+        #datasetGroups[hidden] {
+            display: none !important;
+        }
         .view-tabs {
             display: inline-flex;
             gap: 4px;
@@ -539,6 +544,7 @@ const PREDICTION_FILES = [
     { path: 'data/predictions.csv', label: 'predictions.csv' },
     { path: 'data/predictions_2.csv', label: 'predictions_2.csv' },
 ];
+const COT_TRACE_FILE = 'data/predictions_90.7.csv';
 
 const CATEGORIES = [
     { key: 'bit_manipulation', label: 'Bit Manipulation', badge: 'badge-bit' },
@@ -571,7 +577,7 @@ function esc(s) {
 const tooltip = document.getElementById('tooltip');
 let allProblems = [];
 let selectedIdx = null;
-let hasTraceData = false;
+let showCotTabs = false;
 let currentView = 'overview';
 let cotFilter = 'all';
 let cotSearch = '';
@@ -857,8 +863,8 @@ async function refreshVisualization() {
     try {
         const loaded = await loadData(path);
         allProblems = loaded.problems;
-        hasTraceData = loaded.hasTrace;
-        if (!hasTraceData && currentView === 'cot') currentView = 'overview';
+        showCotTabs = path === COT_TRACE_FILE;
+        if (!showCotTabs && currentView === 'cot') currentView = 'overview';
         Object.keys(cotPageByCategory).forEach((k) => delete cotPageByCategory[k]);
         hideLoadingState();
         updateViewTabs();
@@ -867,7 +873,7 @@ async function refreshVisualization() {
     } catch (err) {
         console.error(err);
         hideLoadingState();
-        hasTraceData = false;
+        showCotTabs = false;
         updateViewTabs();
         document.getElementById('stats').textContent = 'Error loading data';
         document.getElementById('breakdownTable').innerHTML = '';
@@ -878,19 +884,26 @@ async function refreshVisualization() {
 
 function updateViewTabs() {
     const wrap = document.getElementById('viewTabsWrap');
-    wrap.hidden = !hasTraceData;
+    const groups = document.getElementById('datasetGroups');
+    const cot = document.getElementById('cotBrowse');
+    wrap.hidden = !showCotTabs;
+    if (!showCotTabs) {
+        groups.hidden = false;
+        cot.hidden = true;
+    } else {
+        groups.hidden = currentView === 'cot';
+        cot.hidden = currentView !== 'cot';
+    }
     document.getElementById('tabOverview').classList.toggle('active', currentView === 'overview');
     document.getElementById('tabCot').classList.toggle('active', currentView === 'cot');
     document.getElementById('tabOverview').setAttribute('aria-selected', currentView === 'overview' ? 'true' : 'false');
     document.getElementById('tabCot').setAttribute('aria-selected', currentView === 'cot' ? 'true' : 'false');
-    document.getElementById('datasetGroups').hidden = currentView === 'cot';
-    document.getElementById('cotBrowse').hidden = currentView !== 'cot';
     const detailEl = document.getElementById('detailOverlay');
     if (currentView === 'cot') detailEl.classList.remove('visible');
 }
 
 function switchView(view) {
-    if (view === 'cot' && !hasTraceData) return;
+    if (view === 'cot' && !showCotTabs) return;
     currentView = view;
     updateViewTabs();
     if (view === 'cot') buildCotBrowse();
@@ -924,7 +937,7 @@ function bindLazyTrace(detailsEl, trace) {
 
 function buildCotBrowse() {
     const container = document.getElementById('cotBrowse');
-    if (!hasTraceData) {
+    if (!showCotTabs) {
         container.innerHTML = '';
         return;
     }
