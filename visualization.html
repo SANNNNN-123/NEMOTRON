@@ -362,23 +362,17 @@ const CATEGORIES = [
     { key: 'equation_symbolic', label: 'Equation (Symbolic)', badge: 'badge-equation-symbolic' },
 ];
 
-// Official Kaggle metric verify logic
+// Same verify logic as adapter-validation-notebook.ipynb (math.isclose rel_tol=1e-2, abs_tol=1e-5)
 function verify(storedAnswer, predicted) {
     const s = storedAnswer.trim();
     const p = predicted.trim();
-    // Binary strings: exact match
-    if (/^[01]+$/.test(s)) {
-        return p.toLowerCase() === s.toLowerCase();
-    }
-    // Numeric: 1% relative tolerance
     const sNum = parseFloat(s);
     const pNum = parseFloat(p);
-    if (!isNaN(sNum) && !isNaN(pNum) && String(sNum) === s.replace(/^0+(?=\d)/, '')) {
+    if (!Number.isNaN(sNum) && !Number.isNaN(pNum)) {
         const diff = Math.abs(sNum - pNum);
-        const maxAbs = Math.max(Math.abs(sNum), Math.abs(pNum));
-        return diff <= Math.max(1e-2 * maxAbs, 1e-5);
+        const scale = Math.max(Math.abs(sNum), Math.abs(pNum));
+        return diff <= Math.max(1e-2 * scale, 1e-5);
     }
-    // Fallback: case-insensitive string match
     return p.toLowerCase() === s.toLowerCase();
 }
 
