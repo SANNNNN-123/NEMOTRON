@@ -1204,14 +1204,6 @@ function buildLogprobView() {
     const yMin = globalMin - yPad;
     const yMax = Math.min(0, globalMax + yPad);
 
-    let legendCats = '<div class="logprob-legend-group"><span class="logprob-legend-title">Category</span>';
-    CATEGORIES.forEach((cat) => {
-        legendCats += `<span class="logprob-legend-item">
-            <span class="logprob-swatch" style="background:${CATEGORY_COLORS[cat.key]}"></span>
-            <span>${cat.label}</span>
-        </span>`;
-    });
-    legendCats += '</div>';
     const legendOutcome = `<div class="logprob-legend-group">
         <span class="logprob-legend-title">Outcome</span>
         <span class="logprob-legend-item"><span class="logprob-swatch round" style="background:#2ecc71"></span><span>Correct</span></span>
@@ -1245,7 +1237,7 @@ function buildLogprobView() {
             more negative values mean at least one token was generated with low confidence.
             Wrong answers in this run tend to have much lower minlogprob (median ~−1.09) than correct ones (median ~−0.001).
         </div>
-        <div class="logprob-legend">${legendCats}${legendOutcome}</div>
+        <div class="logprob-legend">${legendOutcome}</div>
         <div class="logprob-chart-wrap">
             <canvas id="logprobChart" aria-label="minlogprob distribution by category"></canvas>
         </div>
