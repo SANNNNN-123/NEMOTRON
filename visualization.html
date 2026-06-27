@@ -349,7 +349,8 @@
         }
         .view-tabs-wrap[hidden],
         #cotBrowse[hidden],
-        #datasetGroups[hidden] {
+        #datasetGroups[hidden],
+        #logprobBrowse[hidden] {
             display: none !important;
         }
         .view-tabs {
@@ -505,6 +506,91 @@
             padding: 40px 20px;
             font-size: 14px;
         }
+        .logprob-browse { width: 100%; }
+        .logprob-intro {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #555;
+            background: #f8fafc;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+        }
+        .logprob-intro strong { color: #333; }
+        .logprob-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px 20px;
+            align-items: center;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+        .logprob-legend-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 14px;
+            align-items: center;
+        }
+        .logprob-legend-title {
+            font-weight: 600;
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .logprob-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .logprob-swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            border: 1px solid rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+        .logprob-swatch.round { border-radius: 50%; }
+        .logprob-chart-wrap {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px 8px 8px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        .logprob-chart-wrap canvas {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+        }
+        .logprob-stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .logprob-stats-table th {
+            background: #4a5568;
+            color: #fff;
+            padding: 6px 10px;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .logprob-stats-table td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #e8e8e8;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 11px;
+        }
+        .logprob-stats-table tr:hover { background: #f8fafc; }
+        .logprob-stats-table .category-badge {
+            font-size: 10px;
+            padding: 1px 5px;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -534,10 +620,12 @@
                 <div class="view-tabs" role="tablist" aria-label="Visualization views">
                     <button type="button" class="view-tab active" id="tabOverview" role="tab" aria-selected="true">Overview</button>
                     <button type="button" class="view-tab" id="tabCot" role="tab" aria-selected="false">CoT Traces by Category</button>
+                    <button type="button" class="view-tab" id="tabLogprob" role="tab" aria-selected="false">Min Log Prob</button>
                 </div>
             </div>
             <div class="dataset-groups" id="datasetGroups"></div>
             <div class="cot-browse" id="cotBrowse" hidden></div>
+            <div class="logprob-browse" id="logprobBrowse" hidden></div>
         </div>
         <div class="detail-overlay" id="detailOverlay"></div>
     </div>
@@ -549,6 +637,16 @@ const PREDICTION_FILES = [
     { path: 'data/predictions_2.csv', label: 'predictions_2.csv' },
 ];
 const COT_TRACE_FILE = 'data/predictions_90.7.csv';
+
+const CATEGORY_COLORS = {
+    bit_manipulation: '#0074D9',
+    gravity: '#FF4136',
+    unit_conversion: '#2ECC40',
+    cipher: '#FFDC00',
+    numeral: '#FF851B',
+    equation_numeric: '#B10DC9',
+    equation_symbolic: '#00CED1',
+};
 
 const CATEGORIES = [
     { key: 'bit_manipulation', label: 'Bit Manipulation', badge: 'badge-bit' },
@@ -845,6 +943,7 @@ function showLoadingState(message) {
     document.getElementById('breakdownTable').innerHTML = '';
     document.getElementById('viewTabsWrap').hidden = true;
     document.getElementById('cotBrowse').hidden = true;
+    document.getElementById('logprobBrowse').hidden = true;
     document.getElementById('datasetGroups').hidden = false;
     document.getElementById('datasetGroups').innerHTML =
         `<div class="data-loader" role="status" aria-live="polite">
@@ -868,12 +967,13 @@ async function refreshVisualization() {
         const loaded = await loadData(path);
         allProblems = loaded.problems;
         showCotTabs = path === COT_TRACE_FILE;
-        if (!showCotTabs && currentView === 'cot') currentView = 'overview';
+        if (!showCotTabs && (currentView === 'cot' || currentView === 'logprob')) currentView = 'overview';
         Object.keys(cotPageByCategory).forEach((k) => delete cotPageByCategory[k]);
         hideLoadingState();
         updateViewTabs();
         buildGrid();
         if (currentView === 'cot') buildCotBrowse();
+        if (currentView === 'logprob') buildLogprobView();
     } catch (err) {
         console.error(err);
         hideLoadingState();
@@ -890,27 +990,275 @@ function updateViewTabs() {
     const wrap = document.getElementById('viewTabsWrap');
     const groups = document.getElementById('datasetGroups');
     const cot = document.getElementById('cotBrowse');
+    const logprob = document.getElementById('logprobBrowse');
     wrap.hidden = !showCotTabs;
     if (!showCotTabs) {
         groups.hidden = false;
         cot.hidden = true;
+        logprob.hidden = true;
     } else {
-        groups.hidden = currentView === 'cot';
+        groups.hidden = currentView !== 'overview';
         cot.hidden = currentView !== 'cot';
+        logprob.hidden = currentView !== 'logprob';
     }
     document.getElementById('tabOverview').classList.toggle('active', currentView === 'overview');
     document.getElementById('tabCot').classList.toggle('active', currentView === 'cot');
+    document.getElementById('tabLogprob').classList.toggle('active', currentView === 'logprob');
     document.getElementById('tabOverview').setAttribute('aria-selected', currentView === 'overview' ? 'true' : 'false');
     document.getElementById('tabCot').setAttribute('aria-selected', currentView === 'cot' ? 'true' : 'false');
+    document.getElementById('tabLogprob').setAttribute('aria-selected', currentView === 'logprob' ? 'true' : 'false');
     const detailEl = document.getElementById('detailOverlay');
-    if (currentView === 'cot') detailEl.classList.remove('visible');
+    if (currentView !== 'overview') detailEl.classList.remove('visible');
 }
 
 function switchView(view) {
-    if (view === 'cot' && !showCotTabs) return;
+    if ((view === 'cot' || view === 'logprob') && !showCotTabs) return;
     currentView = view;
     updateViewTabs();
     if (view === 'cot') buildCotBrowse();
+    if (view === 'logprob') buildLogprobView();
+}
+
+function parseMinlogprob(p) {
+    if (p.minlogprob == null || p.minlogprob === '') return null;
+    const v = parseFloat(p.minlogprob);
+    return Number.isFinite(v) ? v : null;
+}
+
+function percentile(sorted, p) {
+    if (sorted.length === 0) return 0;
+    const i = (sorted.length - 1) * p;
+    const lo = Math.floor(i);
+    const hi = Math.ceil(i);
+    if (lo === hi) return sorted[lo];
+    return sorted[lo] * (hi - i) + sorted[hi] * (i - lo);
+}
+
+function computeLogprobStats(vals) {
+    if (!vals.length) return null;
+    const sorted = [...vals].sort((a, b) => a - b);
+    const sum = sorted.reduce((a, b) => a + b, 0);
+    return {
+        n: sorted.length,
+        min: sorted[0],
+        max: sorted[sorted.length - 1],
+        mean: sum / sorted.length,
+        median: percentile(sorted, 0.5),
+        q1: percentile(sorted, 0.25),
+        q3: percentile(sorted, 0.75),
+    };
+}
+
+function formatLogprob(v) {
+    if (v == null) return '—';
+    if (Math.abs(v) < 0.01) return v.toExponential(2);
+    return v.toFixed(4);
+}
+
+function drawLogprobChart(canvas, series, yMin, yMax) {
+    const dpr = window.devicePixelRatio || 1;
+    const wrap = canvas.parentElement;
+    const W = Math.max(720, wrap.clientWidth - 16);
+    const H = 340;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const margin = { top: 24, right: 20, bottom: 72, left: 52 };
+    const plotW = W - margin.left - margin.right;
+    const plotH = H - margin.top - margin.bottom;
+    const n = series.length;
+    const slotW = plotW / n;
+
+    const yScale = (v) => margin.top + ((yMax - v) / (yMax - yMin)) * plotH;
+    const xCenter = (i) => margin.left + slotW * i + slotW / 2;
+
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = '#e8e8e8';
+    ctx.lineWidth = 1;
+    const gridLines = 5;
+    ctx.font = '11px -apple-system, sans-serif';
+    ctx.fillStyle = '#888';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    for (let g = 0; g <= gridLines; g++) {
+        const v = yMin + ((yMax - yMin) * g) / gridLines;
+        const y = yScale(v);
+        ctx.beginPath();
+        ctx.moveTo(margin.left, y);
+        ctx.lineTo(W - margin.right, y);
+        ctx.stroke();
+        ctx.fillText(v.toFixed(1), margin.left - 8, y);
+    }
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = '#666';
+    ctx.font = '12px -apple-system, sans-serif';
+    ctx.fillText('minlogprob (log probability; closer to 0 = more confident)', W / 2, 4);
+
+    series.forEach((s, i) => {
+        const cx = xCenter(i);
+        const boxW = Math.min(56, slotW * 0.55);
+        const { stats, points, color } = s;
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color + '33';
+        const yQ3 = yScale(stats.q3);
+        const yQ1 = yScale(stats.q1);
+        const yMed = yScale(stats.median);
+        const yMinP = yScale(stats.min);
+        const yMaxP = yScale(stats.max);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(cx, yMinP);
+        ctx.lineTo(cx, yQ1);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx, yQ3);
+        ctx.lineTo(cx, yMaxP);
+        ctx.stroke();
+        ctx.strokeRect(cx - boxW / 2, yQ3, boxW, Math.max(2, yQ1 - yQ3));
+        ctx.beginPath();
+        ctx.moveTo(cx - boxW / 2, yMed);
+        ctx.lineTo(cx + boxW / 2, yMed);
+        ctx.stroke();
+
+        const jitterW = boxW * 0.9;
+        points.forEach((pt, j) => {
+            const jitter = ((j * 0.618033988749895) % 1 - 0.5) * jitterW;
+            const jx = cx + jitter;
+            const jy = yScale(pt.v);
+            ctx.fillStyle = pt.isCorrect ? 'rgba(46, 204, 113, 0.45)' : 'rgba(231, 76, 60, 0.55)';
+            ctx.beginPath();
+            ctx.arc(jx, jy, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        ctx.fillStyle = '#444';
+        ctx.font = '11px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const label = s.shortLabel;
+        const lines = label.split('\n');
+        lines.forEach((line, li) => {
+            ctx.fillText(line, cx, H - margin.bottom + 10 + li * 13);
+        });
+    });
+}
+
+function buildLogprobView() {
+    const container = document.getElementById('logprobBrowse');
+    if (!showCotTabs) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const groups = {};
+    CATEGORIES.forEach((c) => { groups[c.key] = []; });
+    allProblems.forEach((p) => {
+        if (groups[p.category]) groups[p.category].push(p);
+    });
+
+    const series = [];
+    let globalMin = 0;
+    let globalMax = -Infinity;
+    CATEGORIES.forEach((cat) => {
+        const problems = groups[cat.key];
+        const points = [];
+        const vals = [];
+        problems.forEach((p) => {
+            const v = parseMinlogprob(p);
+            if (v === null) return;
+            vals.push(v);
+            points.push({ v, isCorrect: p.isCorrect });
+            globalMin = Math.min(globalMin, v);
+            globalMax = Math.max(globalMax, v);
+        });
+        const stats = computeLogprobStats(vals);
+        if (!stats) return;
+        const shortLabel = cat.label.replace('Equation ', 'Eq.\n').replace(' ', '\n');
+        series.push({
+            key: cat.key,
+            label: cat.label,
+            shortLabel: cat.label.includes('(') ? cat.label.replace(' (', '\n(') : shortLabel,
+            color: CATEGORY_COLORS[cat.key] || '#888',
+            badge: cat.badge,
+            stats,
+            points,
+            problems,
+        });
+    });
+
+    if (series.length === 0) {
+        container.innerHTML = '<div class="cot-empty">No minlogprob data available.</div>';
+        return;
+    }
+
+    const yPad = (globalMax - globalMin) * 0.05 || 0.1;
+    const yMin = globalMin - yPad;
+    const yMax = Math.min(0, globalMax + yPad);
+
+    let legendCats = '<div class="logprob-legend-group"><span class="logprob-legend-title">Category</span>';
+    CATEGORIES.forEach((cat) => {
+        legendCats += `<span class="logprob-legend-item">
+            <span class="logprob-swatch" style="background:${CATEGORY_COLORS[cat.key]}"></span>
+            <span>${cat.label}</span>
+        </span>`;
+    });
+    legendCats += '</div>';
+    const legendOutcome = `<div class="logprob-legend-group">
+        <span class="logprob-legend-title">Outcome</span>
+        <span class="logprob-legend-item"><span class="logprob-swatch round" style="background:#2ecc71"></span><span>Correct</span></span>
+        <span class="logprob-legend-item"><span class="logprob-swatch round" style="background:#e74c3c"></span><span>Wrong</span></span>
+    </div>`;
+
+    let tableHtml = `<table class="logprob-stats-table">
+        <thead><tr>
+            <th>Category</th><th>N</th><th>Median</th><th>Mean</th><th>Q1</th><th>Q3</th><th>Min</th><th>Max</th><th>Wrong</th>
+        </tr></thead><tbody>`;
+    series.forEach((s) => {
+        const wrong = s.problems.filter((p) => p.prediction !== null && !p.isCorrect).length;
+        tableHtml += `<tr>
+            <td><span class="category-badge ${s.badge}">${s.label}</span></td>
+            <td>${s.stats.n}</td>
+            <td>${formatLogprob(s.stats.median)}</td>
+            <td>${formatLogprob(s.stats.mean)}</td>
+            <td>${formatLogprob(s.stats.q1)}</td>
+            <td>${formatLogprob(s.stats.q3)}</td>
+            <td>${formatLogprob(s.stats.min)}</td>
+            <td>${formatLogprob(s.stats.max)}</td>
+            <td>${wrong}</td>
+        </tr>`;
+    });
+    tableHtml += '</tbody></table>';
+
+    container.innerHTML = `
+        <div class="logprob-intro">
+            <strong>minlogprob</strong> is the <em>minimum</em> token log-probability across the model's full CoT output
+            (from vLLM). Values closer to <strong>0</strong> mean the model never dipped into very uncertain tokens;
+            more negative values mean at least one token was generated with low confidence.
+            Wrong answers in this run tend to have much lower minlogprob (median ~−1.09) than correct ones (median ~−0.001).
+        </div>
+        <div class="logprob-legend">${legendCats}${legendOutcome}</div>
+        <div class="logprob-chart-wrap">
+            <canvas id="logprobChart" aria-label="minlogprob distribution by category"></canvas>
+        </div>
+        ${tableHtml}
+    `;
+
+    const canvas = document.getElementById('logprobChart');
+    drawLogprobChart(canvas, series, yMin, yMax);
+    if (container._logprobResize) window.removeEventListener('resize', container._logprobResize);
+    container._logprobResize = () => {
+        if (currentView === 'logprob') drawLogprobChart(canvas, series, yMin, yMax);
+    };
+    window.addEventListener('resize', container._logprobResize);
 }
 
 function filterCotProblems(problems) {
@@ -1284,6 +1632,7 @@ document.addEventListener('keydown', (e) => {
 setupPredictionFileSelect();
 document.getElementById('tabOverview').addEventListener('click', () => switchView('overview'));
 document.getElementById('tabCot').addEventListener('click', () => switchView('cot'));
+document.getElementById('tabLogprob').addEventListener('click', () => switchView('logprob'));
 refreshVisualization();
 </script>
 </body>
