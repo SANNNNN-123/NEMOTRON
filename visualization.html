@@ -313,6 +313,33 @@
             font-size: 10px;
             padding: 1px 5px;
         }
+        .data-loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 72px 24px;
+            min-height: 220px;
+            width: 100%;
+            color: #666;
+            font-size: 14px;
+        }
+        .data-loader-spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #e8e8e8;
+            border-top-color: #4a5568;
+            border-radius: 50%;
+            animation: data-loader-spin 0.75s linear infinite;
+        }
+        @keyframes data-loader-spin {
+            to { transform: rotate(360deg); }
+        }
+        .overview-section.is-loading .prediction-source-wrap select {
+            opacity: 0.65;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -329,7 +356,7 @@
                 </div>
                 <div class="overview-header-main">
                     <div class="overview-title">Nemotron Predictions</div>
-                    <div class="stats" id="stats">Loading...</div>
+                    <div class="stats" id="stats"></div>
                     <div class="legend">
                         <div class="legend-item"><div class="legend-box" style="background:#2ecc71; border-color:#27ae60"></div><span>Correct</span></div>
                         <div class="legend-item"><div class="legend-box" style="background:#e74c3c; border-color:#c0392b"></div><span>Wrong</span></div>
@@ -338,9 +365,7 @@
                 </div>
                 <div class="overview-header-spacer" aria-hidden="true"></div>
             </div>
-            <div class="dataset-groups" id="datasetGroups">
-                <div style="color: #888; font-size: 14px;">Loading...</div>
-            </div>
+            <div class="dataset-groups" id="datasetGroups"></div>
         </div>
         <div class="detail-overlay" id="detailOverlay"></div>
     </div>
@@ -607,21 +632,40 @@ function setupPredictionFileSelect() {
     select.addEventListener('change', () => refreshVisualization());
 }
 
+function showLoadingState(message) {
+    document.querySelector('.overview-section').classList.add('is-loading');
+    document.getElementById('predictionFileSelect').disabled = true;
+    document.getElementById('stats').textContent = '';
+    document.getElementById('breakdownTable').innerHTML = '';
+    document.getElementById('datasetGroups').innerHTML =
+        `<div class="data-loader" role="status" aria-live="polite">
+            <div class="data-loader-spinner" aria-hidden="true"></div>
+            <span>${esc(message)}</span>
+        </div>`;
+}
+
+function hideLoadingState() {
+    document.querySelector('.overview-section').classList.remove('is-loading');
+    document.getElementById('predictionFileSelect').disabled = false;
+}
+
 async function refreshVisualization() {
     const select = document.getElementById('predictionFileSelect');
     const path = select.value;
+    const label = PREDICTION_FILES.find((f) => f.path === path)?.label || 'predictions';
     clearSelection();
-    document.getElementById('stats').textContent = 'Loading...';
-    document.getElementById('breakdownTable').innerHTML = '';
-    document.getElementById('datasetGroups').innerHTML = '<div style="color: #888; font-size: 14px;">Loading...</div>';
+    showLoadingState(`Loading ${label}…`);
     try {
         allProblems = await loadData(path);
+        hideLoadingState();
         buildGrid();
     } catch (err) {
         console.error(err);
+        hideLoadingState();
         document.getElementById('stats').textContent = 'Error loading data';
+        document.getElementById('breakdownTable').innerHTML = '';
         document.getElementById('datasetGroups').innerHTML =
-            '<div style="color: #c0392b; font-size: 14px;">Could not load predictions. Serve this page over HTTP (e.g. a local server) and check the file path.</div>';
+            '<div class="data-loader" style="color:#c0392b;">Could not load predictions. Serve this page over HTTP (e.g. a local server) and check the file path.</div>';
     }
 }
 
