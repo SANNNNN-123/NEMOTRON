@@ -431,8 +431,12 @@
         .cot-category-block > summary::-webkit-details-marker { display: none; }
         .cot-category-block > summary::before {
             content: '▸';
-            color: #888;
-            font-size: 12px;
+            color: #444;
+            font-size: 20px;
+            line-height: 1;
+            flex-shrink: 0;
+            width: 24px;
+            text-align: center;
             transition: transform 0.15s;
         }
         .cot-category-block[open] > summary::before { transform: rotate(90deg); }
