@@ -340,6 +340,162 @@
             opacity: 0.65;
             pointer-events: none;
         }
+        .view-tabs-wrap {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        .view-tabs {
+            display: inline-flex;
+            gap: 4px;
+            background: #eef1f5;
+            padding: 4px;
+            border-radius: 8px;
+        }
+        .view-tab {
+            border: none;
+            background: transparent;
+            color: #555;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .view-tab:hover { color: #333; }
+        .view-tab.active {
+            background: #fff;
+            color: #333;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+        .cot-browse { width: 100%; }
+        .cot-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 12px 14px;
+            background: #f8fafc;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+        }
+        .cot-toolbar label {
+            font-size: 13px;
+            color: #555;
+            font-weight: 500;
+        }
+        .cot-toolbar select,
+        .cot-toolbar input[type="text"] {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #fff;
+        }
+        .cot-toolbar input[type="text"] {
+            min-width: 160px;
+            font-family: monospace;
+        }
+        .cot-toolbar .cot-count {
+            margin-left: auto;
+            font-size: 13px;
+            color: #666;
+        }
+        .cot-category-block {
+            margin-bottom: 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .cot-category-block > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 12px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e8e8e8;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .cot-category-block > summary::-webkit-details-marker { display: none; }
+        .cot-category-block > summary::before {
+            content: '▸';
+            color: #888;
+            font-size: 12px;
+            transition: transform 0.15s;
+        }
+        .cot-category-block[open] > summary::before { transform: rotate(90deg); }
+        .cot-category-body { padding: 12px 16px 16px; }
+        .cot-pagination {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #666;
+        }
+        .cot-pagination button {
+            background: #4a5568;
+            color: #fff;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .cot-pagination button:disabled { opacity: 0.35; cursor: default; }
+        .cot-item {
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            background: #fafbfc;
+        }
+        .cot-item > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 10px 12px;
+            font-size: 13px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+        .cot-item > summary::-webkit-details-marker { display: none; }
+        .cot-item-id {
+            font-family: monospace;
+            font-weight: 600;
+            color: #333;
+        }
+        .cot-item-meta {
+            font-size: 12px;
+            color: #666;
+            font-family: monospace;
+        }
+        .cot-trace-box {
+            padding: 12px 14px;
+            border-top: 1px solid #e8e8e8;
+            background: #fff;
+            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 50vh;
+            overflow-y: auto;
+            color: #333;
+        }
+        .cot-empty {
+            text-align: center;
+            color: #888;
+            padding: 40px 20px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -365,7 +521,14 @@
                 </div>
                 <div class="overview-header-spacer" aria-hidden="true"></div>
             </div>
+            <div class="view-tabs-wrap" id="viewTabsWrap" hidden>
+                <div class="view-tabs" role="tablist" aria-label="Visualization views">
+                    <button type="button" class="view-tab active" id="tabOverview" role="tab" aria-selected="true">Overview</button>
+                    <button type="button" class="view-tab" id="tabCot" role="tab" aria-selected="false">CoT Traces by Category</button>
+                </div>
+            </div>
             <div class="dataset-groups" id="datasetGroups"></div>
+            <div class="cot-browse" id="cotBrowse" hidden></div>
         </div>
         <div class="detail-overlay" id="detailOverlay"></div>
     </div>
@@ -408,6 +571,12 @@ function esc(s) {
 const tooltip = document.getElementById('tooltip');
 let allProblems = [];
 let selectedIdx = null;
+let hasTraceData = false;
+let currentView = 'overview';
+let cotFilter = 'all';
+let cotSearch = '';
+const cotPageByCategory = {};
+const COT_PAGE_SIZE = 40;
 /** @type {boolean} */
 let dataSourceManifest = false;
 /** @type {Array<{id:string,category:string,answer:string}>|null} */
@@ -557,34 +726,48 @@ function parseCsvText(text) {
 
 function parsePredictionsCsv(predText) {
     const rows = parseCsvText(predText.trim());
-    if (rows.length === 0) return {};
+    if (rows.length === 0) return { hasTrace: false, byId: {} };
     const header = rows[0];
     const idIdx = header.indexOf('id');
     let predIdx = header.indexOf('predicted');
     if (predIdx === -1) predIdx = header.indexOf('prediction');
-    const predictions = {};
+    const outputIdx = header.indexOf('output');
+    const minlogprobIdx = header.indexOf('minlogprob');
+    const hasTrace = outputIdx !== -1;
+    const byId = {};
     if (idIdx === -1 || predIdx === -1) {
-        // Legacy two-column format: id,prediction (no proper CSV quoting needed)
         for (let i = 1; i < rows.length; i++) {
             const row = rows[i];
             if (row.length < 2) continue;
-            predictions[row[0]] = row[1];
+            byId[row[0]] = { predicted: row[1], trace: null, minlogprob: null };
         }
-        return predictions;
+        return { hasTrace: false, byId };
     }
     for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
         if (row.length <= Math.max(idIdx, predIdx)) continue;
-        predictions[row[idIdx]] = row[predIdx];
+        byId[row[idIdx]] = {
+            predicted: row[predIdx],
+            trace: hasTrace ? (row[outputIdx] || null) : null,
+            minlogprob: minlogprobIdx >= 0 ? (row[minlogprobIdx] || null) : null,
+        };
     }
-    return predictions;
+    return { hasTrace, byId };
 }
 
-function buildProblemsFromManifest(manifestRows, predictions) {
+function predictionFromRow(row) {
+    if (row == null) return null;
+    if (typeof row === 'string') return row;
+    return row.predicted ?? null;
+}
+
+function buildProblemsFromManifest(manifestRows, predData) {
+    const byId = predData.byId || predData;
     const problems = [];
     for (const row of manifestRows) {
         const id = row.id;
-        const prediction = predictions[id] || null;
+        const predRow = byId[id];
+        const prediction = predictionFromRow(predRow);
         const isCorrect = prediction !== null && verify(row.answer, prediction);
         problems.push({
             id,
@@ -592,19 +775,32 @@ function buildProblemsFromManifest(manifestRows, predictions) {
             answer: row.answer,
             category: row.category,
             prediction,
-            isCorrect
+            isCorrect,
+            trace: predRow && predRow.trace ? predRow.trace : null,
+            minlogprob: predRow && predRow.minlogprob != null ? predRow.minlogprob : null,
         });
     }
     return problems;
 }
 
-function buildProblemsFromTrain(trainText, categoryById, predictions) {
+function buildProblemsFromTrain(trainText, categoryById, predData) {
+    const byId = predData.byId || predData;
     const problems = [];
     forEachTrainRow(trainText, (id, prompt, answer) => {
         const category = categoryById[id] || 'unknown';
-        const prediction = predictions[id] || null;
+        const predRow = byId[id];
+        const prediction = predictionFromRow(predRow);
         const isCorrect = prediction !== null && verify(answer, prediction);
-        problems.push({ id, prompt, answer, category, prediction, isCorrect });
+        problems.push({
+            id,
+            prompt,
+            answer,
+            category,
+            prediction,
+            isCorrect,
+            trace: predRow && predRow.trace ? predRow.trace : null,
+            minlogprob: predRow && predRow.minlogprob != null ? predRow.minlogprob : null,
+        });
     });
     return problems;
 }
@@ -614,11 +810,11 @@ async function loadData(predictionPath) {
     const predResp = await fetch(predictionPath);
     if (!predResp.ok) throw new Error('Failed to load ' + predictionPath);
     const predText = await predResp.text();
-    const predictions = parsePredictionsCsv(predText);
-    if (dataSourceManifest) {
-        return buildProblemsFromManifest(cachedManifestRows, predictions);
-    }
-    return buildProblemsFromTrain(cachedTrainText, cachedCategoryById, predictions);
+    const predData = parsePredictionsCsv(predText);
+    const problems = dataSourceManifest
+        ? buildProblemsFromManifest(cachedManifestRows, predData)
+        : buildProblemsFromTrain(cachedTrainText, cachedCategoryById, predData);
+    return { problems, hasTrace: predData.hasTrace };
 }
 
 function setupPredictionFileSelect() {
@@ -637,6 +833,9 @@ function showLoadingState(message) {
     document.getElementById('predictionFileSelect').disabled = true;
     document.getElementById('stats').textContent = '';
     document.getElementById('breakdownTable').innerHTML = '';
+    document.getElementById('viewTabsWrap').hidden = true;
+    document.getElementById('cotBrowse').hidden = true;
+    document.getElementById('datasetGroups').hidden = false;
     document.getElementById('datasetGroups').innerHTML =
         `<div class="data-loader" role="status" aria-live="polite">
             <div class="data-loader-spinner" aria-hidden="true"></div>
@@ -656,16 +855,199 @@ async function refreshVisualization() {
     clearSelection();
     showLoadingState(`Loading ${label}…`);
     try {
-        allProblems = await loadData(path);
+        const loaded = await loadData(path);
+        allProblems = loaded.problems;
+        hasTraceData = loaded.hasTrace;
+        if (!hasTraceData && currentView === 'cot') currentView = 'overview';
+        Object.keys(cotPageByCategory).forEach((k) => delete cotPageByCategory[k]);
         hideLoadingState();
+        updateViewTabs();
         buildGrid();
+        if (currentView === 'cot') buildCotBrowse();
     } catch (err) {
         console.error(err);
         hideLoadingState();
+        hasTraceData = false;
+        updateViewTabs();
         document.getElementById('stats').textContent = 'Error loading data';
         document.getElementById('breakdownTable').innerHTML = '';
         document.getElementById('datasetGroups').innerHTML =
             '<div class="data-loader" style="color:#c0392b;">Could not load predictions. Serve this page over HTTP (e.g. a local server) and check the file path.</div>';
+    }
+}
+
+function updateViewTabs() {
+    const wrap = document.getElementById('viewTabsWrap');
+    wrap.hidden = !hasTraceData;
+    document.getElementById('tabOverview').classList.toggle('active', currentView === 'overview');
+    document.getElementById('tabCot').classList.toggle('active', currentView === 'cot');
+    document.getElementById('tabOverview').setAttribute('aria-selected', currentView === 'overview' ? 'true' : 'false');
+    document.getElementById('tabCot').setAttribute('aria-selected', currentView === 'cot' ? 'true' : 'false');
+    document.getElementById('datasetGroups').hidden = currentView === 'cot';
+    document.getElementById('cotBrowse').hidden = currentView !== 'cot';
+    const detailEl = document.getElementById('detailOverlay');
+    if (currentView === 'cot') detailEl.classList.remove('visible');
+}
+
+function switchView(view) {
+    if (view === 'cot' && !hasTraceData) return;
+    currentView = view;
+    updateViewTabs();
+    if (view === 'cot') buildCotBrowse();
+}
+
+function filterCotProblems(problems) {
+    let list = problems.filter((p) => p.trace);
+    if (cotFilter === 'correct') list = list.filter((p) => p.isCorrect);
+    else if (cotFilter === 'wrong') list = list.filter((p) => p.prediction !== null && !p.isCorrect);
+    const q = cotSearch.trim().toLowerCase();
+    if (q) list = list.filter((p) => p.id.toLowerCase().includes(q));
+    return list;
+}
+
+function cotStatusBadge(p) {
+    if (p.prediction === null) return '<span class="status-badge" style="background:#ecf0f1;color:#666">No Prediction</span>';
+    if (p.isCorrect) return '<span class="status-badge" style="background:#2ecc71;color:#fff">Correct</span>';
+    return '<span class="status-badge" style="background:#e74c3c;color:#fff">Wrong</span>';
+}
+
+function bindLazyTrace(detailsEl, trace) {
+    detailsEl.addEventListener('toggle', () => {
+        if (!detailsEl.open) return;
+        const box = detailsEl.querySelector('.cot-trace-box');
+        if (box && !box.dataset.loaded) {
+            box.textContent = trace;
+            box.dataset.loaded = '1';
+        }
+    });
+}
+
+function buildCotBrowse() {
+    const container = document.getElementById('cotBrowse');
+    if (!hasTraceData) {
+        container.innerHTML = '';
+        return;
+    }
+
+    const groups = {};
+    CATEGORIES.forEach((c) => { groups[c.key] = []; });
+    allProblems.forEach((p) => {
+        if (groups[p.category]) groups[p.category].push(p);
+    });
+
+    let totalShown = 0;
+    CATEGORIES.forEach((cat) => {
+        totalShown += filterCotProblems(groups[cat.key]).length;
+    });
+
+    let html = `<div class="cot-toolbar">
+        <label for="cotFilter">Show</label>
+        <select id="cotFilter">
+            <option value="all"${cotFilter === 'all' ? ' selected' : ''}>All</option>
+            <option value="correct"${cotFilter === 'correct' ? ' selected' : ''}>Correct only</option>
+            <option value="wrong"${cotFilter === 'wrong' ? ' selected' : ''}>Wrong only</option>
+        </select>
+        <label for="cotSearch">Search ID</label>
+        <input type="text" id="cotSearch" placeholder="e.g. 00066667" value="${esc(cotSearch)}">
+        <span class="cot-count">${totalShown.toLocaleString()} trace${totalShown === 1 ? '' : 's'}</span>
+    </div>`;
+
+    if (totalShown === 0) {
+        html += '<div class="cot-empty">No traces match the current filter.</div>';
+        container.innerHTML = html;
+        bindCotToolbar();
+        return;
+    }
+
+    CATEGORIES.forEach((cat) => {
+        const filtered = filterCotProblems(groups[cat.key]);
+        if (filtered.length === 0) return;
+
+        const page = cotPageByCategory[cat.key] || 0;
+        const totalPages = Math.ceil(filtered.length / COT_PAGE_SIZE);
+        const safePage = Math.min(page, Math.max(0, totalPages - 1));
+        cotPageByCategory[cat.key] = safePage;
+        const start = safePage * COT_PAGE_SIZE;
+        const pageItems = filtered.slice(start, start + COT_PAGE_SIZE);
+
+        html += `<details class="cot-category-block" open data-category="${esc(cat.key)}">
+            <summary>
+                <span class="category-badge ${cat.badge}" style="margin:0">${cat.label}</span>
+                <span style="font-weight:400;color:#666">${filtered.length.toLocaleString()} traces</span>
+            </summary>
+            <div class="cot-category-body">`;
+
+        if (totalPages > 1) {
+            html += `<div class="cot-pagination" data-category="${esc(cat.key)}">
+                <button type="button" class="cot-page-prev" data-category="${esc(cat.key)}" ${safePage <= 0 ? 'disabled' : ''}>&larr; Prev</button>
+                <span>Page ${safePage + 1} of ${totalPages}</span>
+                <button type="button" class="cot-page-next" data-category="${esc(cat.key)}" ${safePage >= totalPages - 1 ? 'disabled' : ''}>Next &rarr;</button>
+            </div>`;
+        }
+
+        pageItems.forEach((p) => {
+            const meta = [];
+            if (p.prediction !== null) meta.push(`pred: ${p.prediction}`);
+            meta.push(`answer: ${p.answer}`);
+            if (p.minlogprob != null && p.minlogprob !== '') meta.push(`minlogprob: ${p.minlogprob}`);
+            html += `<details class="cot-item" data-idx="${p._globalIdx}">
+                <summary>
+                    <span class="cot-item-id">${esc(p.id)}</span>
+                    ${cotStatusBadge(p)}
+                    <span class="cot-item-meta">${esc(meta.join(' · '))}</span>
+                </summary>
+                <div class="cot-trace-box" data-idx="${p._globalIdx}"></div>
+            </details>`;
+        });
+
+        html += `</div></details>`;
+    });
+
+    container.innerHTML = html;
+    bindCotToolbar();
+
+    container.querySelectorAll('.cot-item').forEach((el) => {
+        const idx = Number(el.dataset.idx);
+        const p = allProblems[idx];
+        if (p && p.trace) bindLazyTrace(el, p.trace);
+    });
+
+    container.querySelectorAll('.cot-page-prev').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const key = btn.dataset.category;
+            cotPageByCategory[key] = Math.max(0, (cotPageByCategory[key] || 0) - 1);
+            buildCotBrowse();
+        });
+    });
+    container.querySelectorAll('.cot-page-next').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const key = btn.dataset.category;
+            cotPageByCategory[key] = (cotPageByCategory[key] || 0) + 1;
+            buildCotBrowse();
+        });
+    });
+}
+
+function bindCotToolbar() {
+    const filterEl = document.getElementById('cotFilter');
+    const searchEl = document.getElementById('cotSearch');
+    if (filterEl) {
+        filterEl.addEventListener('change', () => {
+            cotFilter = filterEl.value;
+            Object.keys(cotPageByCategory).forEach((k) => delete cotPageByCategory[k]);
+            buildCotBrowse();
+        });
+    }
+    if (searchEl) {
+        let searchTimer = null;
+        searchEl.addEventListener('input', () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                cotSearch = searchEl.value;
+                Object.keys(cotPageByCategory).forEach((k) => delete cotPageByCategory[k]);
+                buildCotBrowse();
+            }, 250);
+        });
     }
 }
 
@@ -883,6 +1265,8 @@ document.addEventListener('keydown', (e) => {
 
 // Init
 setupPredictionFileSelect();
+document.getElementById('tabOverview').addEventListener('click', () => switchView('overview'));
+document.getElementById('tabCot').addEventListener('click', () => switchView('cot'));
 refreshVisualization();
 </script>
 </body>
