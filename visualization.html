@@ -638,16 +638,6 @@ const PREDICTION_FILES = [
 ];
 const COT_TRACE_FILE = 'data/predictions_90.7.csv';
 
-const CATEGORY_COLORS = {
-    bit_manipulation: '#0074D9',
-    gravity: '#FF4136',
-    unit_conversion: '#2ECC40',
-    cipher: '#FFDC00',
-    numeral: '#FF851B',
-    equation_numeric: '#B10DC9',
-    equation_symbolic: '#00CED1',
-};
-
 const CATEGORIES = [
     { key: 'bit_manipulation', label: 'Bit Manipulation', badge: 'badge-bit' },
     { key: 'gravity', label: 'Gravity', badge: 'badge-gravity' },
@@ -1105,10 +1095,10 @@ function drawLogprobChart(canvas, series, yMin, yMax) {
     series.forEach((s, i) => {
         const cx = xCenter(i);
         const boxW = Math.min(56, slotW * 0.55);
-        const { stats, points, color } = s;
+        const { stats, points } = s;
 
-        ctx.strokeStyle = color;
-        ctx.fillStyle = color + '33';
+        ctx.strokeStyle = '#333';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
         const yQ3 = yScale(stats.q3);
         const yQ1 = yScale(stats.q1);
         const yMed = yScale(stats.median);
@@ -1187,7 +1177,6 @@ function buildLogprobView() {
             key: cat.key,
             label: cat.label,
             shortLabel: cat.label.includes('(') ? cat.label.replace(' (', '\n(') : shortLabel,
-            color: CATEGORY_COLORS[cat.key] || '#888',
             badge: cat.badge,
             stats,
             points,
