@@ -498,15 +498,65 @@ async function ensurePromptsLoaded() {
     }
 }
 
+function parseCsvText(text) {
+    const rows = [];
+    let inQuote = false;
+    let field = '';
+    let fields = [];
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (inQuote) {
+            if (ch === '"' && text[i + 1] === '"') {
+                field += '"';
+                i++;
+            } else if (ch === '"') {
+                inQuote = false;
+            } else {
+                field += ch;
+            }
+        } else if (ch === '"') {
+            inQuote = true;
+        } else if (ch === ',') {
+            fields.push(field);
+            field = '';
+        } else if (ch === '\n' || ch === '\r') {
+            if (ch === '\r' && text[i + 1] === '\n') i++;
+            fields.push(field);
+            field = '';
+            if (fields.length > 1 || fields[0] !== '') rows.push(fields);
+            fields = [];
+        } else {
+            field += ch;
+        }
+    }
+    if (field || fields.length > 0) {
+        fields.push(field);
+        if (fields.length > 1 || fields[0] !== '') rows.push(fields);
+    }
+    return rows;
+}
+
 function parsePredictionsCsv(predText) {
+    const rows = parseCsvText(predText.trim());
+    if (rows.length === 0) return {};
+    const header = rows[0];
+    const idIdx = header.indexOf('id');
+    let predIdx = header.indexOf('predicted');
+    if (predIdx === -1) predIdx = header.indexOf('prediction');
     const predictions = {};
-    const predLines = predText.trim().split('\n');
-    for (let i = 1; i < predLines.length; i++) {
-        const firstComma = predLines[i].indexOf(',');
-        if (firstComma === -1) continue;
-        const id = predLines[i].substring(0, firstComma);
-        const prediction = predLines[i].substring(firstComma + 1).replace(/^"|"$/g, '');
-        predictions[id] = prediction;
+    if (idIdx === -1 || predIdx === -1) {
+        // Legacy two-column format: id,prediction (no proper CSV quoting needed)
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (row.length < 2) continue;
+            predictions[row[0]] = row[1];
+        }
+        return predictions;
+    }
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (row.length <= Math.max(idIdx, predIdx)) continue;
+        predictions[row[idIdx]] = row[predIdx];
     }
     return predictions;
 }
