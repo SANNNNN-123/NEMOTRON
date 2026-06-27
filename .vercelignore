@@ -1,0 +1,23 @@
+# Build output (generated on deploy)
+site/
+
+# Python / Node envs
+myenv/
+.venv/
+node_modules/
+
+# Not needed for the viz static build (keeps upload smaller)
+nemotron-master/
+old_experiment/
+error_analysis/
+evaluation/
+docs/
+.github/
+*.ipynb
+
+# Large training corpora not used by visualization.html
+data/final_*
+data/formatted_*
+data/nemotron_master_corpus.csv
+data/problem_ids_matched*
+data/train_split*
